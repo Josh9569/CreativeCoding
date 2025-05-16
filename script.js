@@ -56,7 +56,8 @@ function preload() {
     shooimg = loadImage('assets/shooter.png');
     shooSpawnData = loadJSON('json/shooter.json');
     font = loadFont('assets/RubikGlitch-Regular.ttf');
-    menubg = loadImage('assets/mainmenu.png');
+    menubg = loadImage('assets/menu.png');
+    mainmenubg = loadImage('assets/mainmenu.png');
     controls = loadImage('assets/controls.png');
     pulse = loadImage('assets/linear pulse.png');
     fracture = loadImage('assets/fracture.png');
@@ -75,7 +76,7 @@ function setup() {
   player.changeImage("right");
   player.setCollider("rectangle", 0, 0, 100, 100);
   // MENU
-  background(menubg);
+  background(mainmenubg);
   const lightBlue = "#e0f7fa";
   startButton = createButton('START');
   startButton.style("all", "unset");
@@ -150,7 +151,7 @@ function setup() {
   difficulty.style("color", "white");
   difficulty.style("cursor", "pointer");
   difficulty.style("font-family", "Rubik Glitch");
-  difficulty.position(100, height -200);
+  difficulty.position(100, height - 250);
   difficulty.mouseOver(() => difficulty.style("color", lightBlue));
   difficulty.mouseOut(() => difficulty.style("color", "#ffffff"));
   difficulty.hide();
@@ -161,21 +162,23 @@ function setup() {
   shooGroup = new Group();
   shooBullets = new Group();
   startButton.mousePressed(() => {
-  startButton.remove();
-  controlsButton.remove();
-  leaderboardButton.remove();
-  nextButton.show();
-  leftArrow.show();
-  rightArrow.show();
-  difficulty.show();
-  menuState = "selectBullet";
-  leftArrow.mousePressed(() => {
-    if (bulletrotator > 0) bulletrotator--;
+    background(menubg);
+    startButton.hide();
+    controlsButton.hide();
+    leaderboardButton.hide();
+    nextButton.show();
+    leftArrow.show();
+    rightArrow.show();
+    difficulty.show();
+    backButton.show();
+    menuState = "selectBullet";
+    leftArrow.mousePressed(() => {
+      if (bulletrotator > 0) bulletrotator--;
+    });
+    rightArrow.mousePressed(() => {
+      if (bulletrotator < 2) bulletrotator++;
+    });
   });
-  rightArrow.mousePressed(() => {
-    if (bulletrotator < 2) bulletrotator++;
-  });
-});
   difficulty.mousePressed(() => {
     if (hitpointsMax === 100) {
       hitpointsMax = 150;
@@ -197,6 +200,7 @@ function setup() {
     difficulty.remove();
   });
   controlsButton.mousePressed(() => {
+    background(menubg);
     backButton.show();
     startButton.hide();
     controlsButton.hide();
@@ -204,17 +208,23 @@ function setup() {
     image(controls, 0, 0, width, height);
   });
   backButton.mousePressed(() => {
-    background(menubg);
+    background(mainmenubg);
     startButton.show();
     controlsButton.show();
     leaderboardButton.show();
     backButton.hide();
-
+    nextButton.hide();
+    leftArrow.hide();
+    rightArrow.hide();
+    difficulty.hide();
+    menuState = "main";
   });
   leaderboardButton.mousePressed(() => {
-    startButton.remove();
-    controlsButton.remove();
-    leaderboardButton.remove();
+    background(menubg);
+    startButton.hide();
+    controlsButton.hide();
+    leaderboardButton.hide();
+    backButton.show();
   });
 }
 
@@ -490,7 +500,6 @@ function draw() {
   
   
   if (menuState === "selectBullet") {
-
     imageMode(CENTER);
     if (bulletrotator === 0) {
       image(pulse, 250, 200);
