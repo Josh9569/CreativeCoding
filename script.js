@@ -198,6 +198,7 @@ function setup() {
     leftArrow.remove();
     rightArrow.remove();
     difficulty.remove();
+    backButton.remove();
   });
   controlsButton.mousePressed(() => {
     background(menubg);
