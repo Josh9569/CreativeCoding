@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
@@ -15,6 +15,7 @@ let hitpointsMax = 100; //max hitpoints on hard
 let currentStage = 1;
 let currentLevel = 1;
 let stageInitialized = false;
+let menuState = "main";
 
 // Kamikaze wave
 let wavesofK = 5;
@@ -57,6 +58,9 @@ function preload() {
     font = loadFont('assets/RubikGlitch-Regular.ttf');
     menubg = loadImage('assets/mainmenu.png');
     controls = loadImage('assets/controls.png');
+    pulse = loadImage('assets/linear pulse.png');
+    fracture = loadImage('assets/fracture.png');
+    gravetide = loadImage('assets/gravetide.png');
 }
 
 // ───────────────────────────── SETUP ─────────────────────────────
@@ -126,7 +130,7 @@ function setup() {
   leftArrow.style("color", "white");
   leftArrow.style("cursor", "pointer");
   leftArrow.style("font-family", "Rubik Glitch");
-  leftArrow.position(100, height/2-150);
+  leftArrow.position(75, height/2-125);
   leftArrow.mouseOver(() => leftArrow.style("color", lightBlue));
   leftArrow.mouseOut(() => leftArrow.style("color", "#ffffff"));
   leftArrow.hide();
@@ -136,10 +140,20 @@ function setup() {
   rightArrow.style("color", "white");
   rightArrow.style("cursor", "pointer");
   rightArrow.style("font-family", "Rubik Glitch");
-  rightArrow.position(width - 100, height/2-150);
+  rightArrow.position(415, height/2-125);
   rightArrow.mouseOver(() => rightArrow.style("color", lightBlue));
   rightArrow.mouseOut(() => rightArrow.style("color", "#ffffff"));
   rightArrow.hide();
+  difficulty = createButton('DIFFICULTY:<br>HARD');
+  difficulty.style("all", "unset");
+  difficulty.style('font-size', '50px');
+  difficulty.style("color", "white");
+  difficulty.style("cursor", "pointer");
+  difficulty.style("font-family", "Rubik Glitch");
+  difficulty.position(100, height -200);
+  difficulty.mouseOver(() => difficulty.style("color", lightBlue));
+  difficulty.mouseOut(() => difficulty.style("color", "#ffffff"));
+  difficulty.hide();
   //player.debug = true;
   bullets = new Group();
   kamiGroup = new Group();
@@ -147,25 +161,40 @@ function setup() {
   shooGroup = new Group();
   shooBullets = new Group();
   startButton.mousePressed(() => {
-    //state = 1;
-    startButton.remove();
-    controlsButton.remove();
-    leaderboardButton.remove();
-    nextButton.show();
-    leftArrow.show();
-    rightArrow.show();
-    leftArrow.mousePressed(() => {
-      if (bulletrotator > 0) bulletrotator--;
-    });
-    rightArrow.mousePressed(() => {
-      if (bulletrotator < 2) bulletrotator++;
-    });
+  startButton.remove();
+  controlsButton.remove();
+  leaderboardButton.remove();
+  nextButton.show();
+  leftArrow.show();
+  rightArrow.show();
+  difficulty.show();
+  menuState = "selectBullet";
+  leftArrow.mousePressed(() => {
+    if (bulletrotator > 0) bulletrotator--;
+  });
+  rightArrow.mousePressed(() => {
+    if (bulletrotator < 2) bulletrotator++;
+  });
+});
+  difficulty.mousePressed(() => {
+    if (hitpointsMax === 100) {
+      hitpointsMax = 150;
+      difficulty.html('DIFFICULTY:<br>MEDIUM');
+    } else if (hitpointsMax === 150) {
+      hitpointsMax = 200;
+      difficulty.html('DIFFICULTY:<br>EASY');
+    } else if (hitpointsMax === 200) {
+      hitpointsMax = 100;
+      difficulty.html('DIFFICULTY:<br>HARD');
+    }
+    hitpoints = hitpointsMax;
   });
   nextButton.mousePressed(() => {
     state = 1;
     nextButton.remove();
     leftArrow.remove();
     rightArrow.remove();
+    difficulty.remove();
   });
   controlsButton.mousePressed(() => {
     backButton.show();
@@ -458,7 +487,22 @@ function stageLoader(stage, level) {
 
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
+  
+  
+  if (menuState === "selectBullet") {
+
+    imageMode(CENTER);
+    if (bulletrotator === 0) {
+      image(pulse, 250, 200);
+    } else if (bulletrotator === 1) {
+      image(fracture, 250, 200);
+    } else if (bulletrotator === 2) {
+      image(gravetide, 250, 200);
+    }
+  }
+  imageMode(CORNER);
   if (state === 1) {
+    background(0);
     if (!stageInitialized) {
       stageLoader(currentStage, currentLevel);
       stageInitialized = true;
