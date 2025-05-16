@@ -1,9 +1,10 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
+let state = 0;
 let bulletrotator = 0;
 let playerdirection = 1;
 let lastShotTime = 0;
@@ -29,15 +30,15 @@ let wavePActive = false;
 let wavePSpawned = false;
 // Kamikaze wave timing
 let warningStartTimeK = 0;
-let warningDelayK = 2000;
+let warningDelayK = 1000;
 let warningPatternK = null;
 // Shooter wave timing
 let warningStartTimeS = 0;
-let warningDelayS = 2000;
+let warningDelayS = 1500;
 let warningPatternS = null;
 // Pattern wave timing
 let warningStartTimeP = 0;
-let warningDelayP = 2000;
+let warningDelayP = 1500;
 let warningPatternP = null;
 
 // ───────────────────────────── PRELOAD ASSETS ─────────────────────────────
@@ -53,24 +54,60 @@ function preload() {
     patSpawnData = loadJSON('json/pattern.json');
     shooimg = loadImage('assets/shooter.png');
     shooSpawnData = loadJSON('json/shooter.json');
+    font = loadFont('assets/RubikGlitch-Regular.ttf');
 }
 
 // ───────────────────────────── SETUP ─────────────────────────────
 
 function setup() {
-    createCanvas(800, 600);
-    player = createSprite(750, 200, 40, 40);
-    player.addImage("left", playerleft);
-    player.addImage("right", playerright);
-    player.scale = 0.1;
-    player.changeImage("right");
-    player.setCollider("rectangle", 0, 0, 100, 100);
-    //player.debug = true;
-    bullets = new Group();
-    kamiGroup = new Group();
-    patGroup = new Group();
-    shooGroup = new Group();
-    shooBullets = new Group();
+  createCanvas(800, 600);
+  textFont(font)
+  player = createSprite(worldWidth / 2, height / 2, 40, 40);
+  player.addImage("left", playerleft);
+  player.addImage("right", playerright);
+  player.scale = 0.1;
+  player.changeImage("right");
+  player.setCollider("rectangle", 0, 0, 100, 100);
+  startButton = createButton('START');
+  startButton.style("all", "unset");
+  startButton.style('font-size', '50px');
+  startButton.style("color", "black");
+  startButton.style("cursor", "pointer");
+  startButton.style("font-family", "Rubik Glitch");
+  startButton.position(100, height / 2 - 100);
+  startButton.mouseOver(() => startButton.style("color", "blue"));
+  startButton.mouseOut(() => startButton.style("color", "black"));
+  controlsButton = createButton('CONTROLS');
+  controlsButton.style("all", "unset");
+  controlsButton.style('font-size', '50px');
+  controlsButton.style("color", "black");
+  controlsButton.style("cursor", "pointer");
+  controlsButton.style("font-family", "Rubik Glitch");
+  controlsButton.position(100, height / 2);
+  controlsButton.mouseOver(() => controlsButton.style("color", "blue"));
+  controlsButton.mouseOut(() => controlsButton.style("color", "black"));
+  leaderboardButton = createButton('LEADERBOARD');
+  leaderboardButton.style("all", "unset");
+  leaderboardButton.style('font-size', '50px');
+  leaderboardButton.style("color", "black");
+  leaderboardButton.style("cursor", "pointer");
+  leaderboardButton.style("font-family", "Rubik Glitch");
+  leaderboardButton.position(100, height / 2 + 100);
+  leaderboardButton.mouseOver(() => leaderboardButton.style("color", "blue"));
+  leaderboardButton.mouseOut(() => leaderboardButton.style("color", "black"));
+  
+  //player.debug = true;
+  bullets = new Group();
+  kamiGroup = new Group();
+  patGroup = new Group();
+  shooGroup = new Group();
+  shooBullets = new Group();
+  startButton.mousePressed(() => {
+    state = 1;
+    startButton.remove();
+    controlsButton.remove();
+    leaderboardButton.remove();
+  });
 }
 
 // ───────────────────────────── WEAPONS ─────────────────────────────
@@ -338,122 +375,123 @@ function stageLoader(stage, level) {
 
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
+  if (state === 0) {
+  } else if (state === 1) {
+    if (!stageInitialized) {
+      stageLoader(currentStage, currentLevel);
+      stageInitialized = true;
+    }
+
+    if (waveKSpawned) {
+      for (let k of kamiGroup) {
+        k.attractionPoint(0.2, player.position.x, player.position.y);
+        let dx = player.position.x - k.position.x;
+        let dy = player.position.y - k.position.y;
+        k.rotation = degrees(atan2(dy, dx));
+      }
+    }
+
+    if (waveSSpawned) {
+      let shooterWaitTime = 2000;
+      for (let s of shooGroup) {
+        if (s.lastShotTime === undefined) s.lastShotTime = 0;
+        if (millis() - s.lastShotTime >= shooterWaitTime) {
+          let k = createSprite(s.position.x, s.position.y, 5);
+          k.shapeColor = color(255, 100, 100);
+          let dx = player.position.x - s.position.x;
+          let dy = player.position.y - s.position.y;
+          let mag = sqrt(dx * dx + dy * dy);
+          let bulletSpeed = 3;
+          k.velocity.x = (dx / mag) * bulletSpeed;
+          k.velocity.y = (dy / mag) * bulletSpeed;
+          shooBullets.add(k);
+          s.lastShotTime = millis();
+        }
+      }
+    }
+
+    if (bulletrotator == 1) {
+        while (bullets.length > 200) {
+            bullets[0].remove();
+        }
+    } else if (bulletrotator == 2) {
+        while (bullets.length > 50) {
+            bullets[0].remove();
+        }
+      } else if (bulletrotator == 0) {
+        while (bullets.length > 70) {
+            bullets[0].remove();
+        }
+      }
+    bulletColor = color(137, 207, 240);
+    if (keyIsDown(37)) {
+      if (bulletrotator == 0) wlight(-12);
+      else if (bulletrotator == 1) wmedium(-7, 1, -1);
+      else if (bulletrotator == 2) wheavy(-6);
+    } else if (keyIsDown(39)) {
+      if (bulletrotator == 0) wlight(12);
+      else if (bulletrotator == 1) wmedium(7, 1, -1);
+      else if (bulletrotator == 2) wheavy(9);
+    }
+    bullets.collide(kamiGroup, bulletHitsEnemy);
+    player.overlap(kamiGroup, playerHitsEnemy);
+    bullets.collide(patGroup, bulletHitsEnemy);
+    player.overlap(patGroup, playerHitsEnemy);
+    bullets.collide(shooGroup, bulletHitsEnemy);
+    player.overlap(shooGroup, playerHitsEnemy);
+    player.overlap(shooBullets, playerHitsEnemy);
+    bullets.overlap(shooBullets, bulletHitsEnemy);
+    kamiGroup.collide(kamiGroup);
+    patGroup.collide(patGroup);
+    kamiGroup.collide(patGroup);
+    shooGroup.collide(kamiGroup);
+    shooGroup.collide(patGroup);
+
+    player.velocity.x = 0;
+    player.velocity.y = 0;
+    if (keyIsDown(65)) {
+      player.velocity.x = -playerSpeed;
+      player.changeImage("left");
+    }
+    if (keyIsDown(68)) {
+      player.velocity.x = playerSpeed;
+      player.changeImage("right");
+    }
+    if (keyIsDown(87)) player.velocity.y = -4;
+    if (keyIsDown(83)) player.velocity.y = 4;
+
+    player.position.x = constrain(player.position.x, 0, worldWidth);
+    player.position.y = constrain(player.position.y, 0, height);
+    camX = constrain(player.position.x - width / 2, 0, worldWidth - width);
+
+  if (stageBgImg) {
+    for (let x = 0; x < worldWidth; x += stageBgImg.width) {
+      image(stageBgImg, x - camX, 0, stageBgImg.width, height);
+    }
+  }
+
+    push();
+    translate(-camX, 0);
+    drawSprites();
+    manageKamikazeWaves();
+    managePatternWaves();
+    manageShooterWaves();
+    pop();
+    updateHealthBar();
+  if (wavesofK <= 0 && wavesofP <= 0 && wavesofS <= 0) {
+    if (currentLevel === 3) {
+      currentStage++;
+      currentLevel = 1;
+    } else {
+      currentLevel++;
+    }
+    stageInitialized = false;
+  }
+
   if (!stageInitialized) {
     stageLoader(currentStage, currentLevel);
     stageInitialized = true;
   }
-
-  if (waveKSpawned) {
-    for (let k of kamiGroup) {
-      k.attractionPoint(0.2, player.position.x, player.position.y);
-      let dx = player.position.x - k.position.x;
-      let dy = player.position.y - k.position.y;
-      k.rotation = degrees(atan2(dy, dx));
-    }
-  }
-
-  if (waveSSpawned) {
-    let shooterWaitTime = 2000;
-    for (let s of shooGroup) {
-      if (s.lastShotTime === undefined) s.lastShotTime = 0;
-      if (millis() - s.lastShotTime >= shooterWaitTime) {
-        let k = createSprite(s.position.x, s.position.y, 5);
-        k.shapeColor = color(255, 100, 100);
-        let dx = player.position.x - s.position.x;
-        let dy = player.position.y - s.position.y;
-        let mag = sqrt(dx * dx + dy * dy);
-        let bulletSpeed = 3;
-        k.velocity.x = (dx / mag) * bulletSpeed;
-        k.velocity.y = (dy / mag) * bulletSpeed;
-        shooBullets.add(k);
-        s.lastShotTime = millis();
-      }
-    }
-  }
-
-  if (bulletrotator == 1) {
-      while (bullets.length > 200) {
-          bullets[0].remove();
-      }
-  } else if (bulletrotator == 2) {
-      while (bullets.length > 50) {
-          bullets[0].remove();
-      }
-    } else if (bulletrotator == 0) {
-      while (bullets.length > 70) {
-          bullets[0].remove();
-      }
-    }
-  bulletColor = color(137, 207, 240);
-  if (keyIsDown(37)) {
-    if (bulletrotator == 0) wlight(-12);
-    else if (bulletrotator == 1) wmedium(-7, 1, -1);
-    else if (bulletrotator == 2) wheavy(-6);
-  } else if (keyIsDown(39)) {
-    if (bulletrotator == 0) wlight(12);
-    else if (bulletrotator == 1) wmedium(7, 1, -1);
-    else if (bulletrotator == 2) wheavy(9);
-  }
-  bullets.collide(kamiGroup, bulletHitsEnemy);
-  player.overlap(kamiGroup, playerHitsEnemy);
-  bullets.collide(patGroup, bulletHitsEnemy);
-  player.overlap(patGroup, playerHitsEnemy);
-  bullets.collide(shooGroup, bulletHitsEnemy);
-  player.overlap(shooGroup, playerHitsEnemy);
-  player.overlap(shooBullets, playerHitsEnemy);
-  bullets.overlap(shooBullets, bulletHitsEnemy);
-  kamiGroup.collide(kamiGroup);
-  patGroup.collide(patGroup);
-  kamiGroup.collide(patGroup);
-  shooGroup.collide(kamiGroup);
-  shooGroup.collide(patGroup);
-
-  player.velocity.x = 0;
-  player.velocity.y = 0;
-  if (keyIsDown(65)) {
-    player.velocity.x = -playerSpeed;
-    player.changeImage("left");
-  }
-  if (keyIsDown(68)) {
-    player.velocity.x = playerSpeed;
-    player.changeImage("right");
-  }
-  if (keyIsDown(87)) player.velocity.y = -4;
-  if (keyIsDown(83)) player.velocity.y = 4;
-
-  player.position.x = constrain(player.position.x, 0, worldWidth);
-  player.position.y = constrain(player.position.y, 0, height);
-  camX = constrain(player.position.x - width / 2, 0, worldWidth - width);
-
-if (stageBgImg) {
-  for (let x = 0; x < worldWidth; x += stageBgImg.width) {
-    image(stageBgImg, x - camX, 0, stageBgImg.width, height);
-  }
-}
-
-  push();
-  translate(-camX, 0);
-  drawSprites();
-  manageKamikazeWaves();
-  managePatternWaves();
-  manageShooterWaves();
-  pop();
-
-  updateHealthBar();
-if (wavesofK <= 0 && wavesofP <= 0 && wavesofS <= 0) {
-  if (currentLevel === 3) {
-    currentStage++;
-    currentLevel = 1;
-  } else {
-    currentLevel++;
-  }
-  stageInitialized = false;
-}
-
-if (!stageInitialized) {
-  stageLoader(currentStage, currentLevel);
-  stageInitialized = true;
-}
 
 
   fill(255);
@@ -464,4 +502,5 @@ if (!stageInitialized) {
   text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
   text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
   text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
+  }
 }
