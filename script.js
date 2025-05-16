@@ -55,6 +55,7 @@ function preload() {
     shooimg = loadImage('assets/shooter.png');
     shooSpawnData = loadJSON('json/shooter.json');
     font = loadFont('assets/RubikGlitch-Regular.ttf');
+    menubg = loadImage('assets/mainmenu.png');
 }
 
 // ───────────────────────────── SETUP ─────────────────────────────
@@ -68,33 +69,36 @@ function setup() {
   player.scale = 0.1;
   player.changeImage("right");
   player.setCollider("rectangle", 0, 0, 100, 100);
+  // MENU
+  background(menubg);
+  const lightBlue = "#e0f7fa";
   startButton = createButton('START');
   startButton.style("all", "unset");
   startButton.style('font-size', '50px');
-  startButton.style("color", "black");
+  startButton.style("color", "white");
   startButton.style("cursor", "pointer");
   startButton.style("font-family", "Rubik Glitch");
   startButton.position(100, height / 2 - 100);
-  startButton.mouseOver(() => startButton.style("color", "blue"));
-  startButton.mouseOut(() => startButton.style("color", "black"));
+  startButton.mouseOver(() => startButton.style("color", lightBlue));
+  startButton.mouseOut(() => startButton.style("color", "#ffffff"));
   controlsButton = createButton('CONTROLS');
   controlsButton.style("all", "unset");
   controlsButton.style('font-size', '50px');
-  controlsButton.style("color", "black");
+  controlsButton.style("color", "white");
   controlsButton.style("cursor", "pointer");
   controlsButton.style("font-family", "Rubik Glitch");
   controlsButton.position(100, height / 2);
-  controlsButton.mouseOver(() => controlsButton.style("color", "blue"));
-  controlsButton.mouseOut(() => controlsButton.style("color", "black"));
+  controlsButton.mouseOver(() => controlsButton.style("color", lightBlue));
+  controlsButton.mouseOut(() => controlsButton.style("color", "#ffffff"));
   leaderboardButton = createButton('LEADERBOARD');
   leaderboardButton.style("all", "unset");
   leaderboardButton.style('font-size', '50px');
-  leaderboardButton.style("color", "black");
+  leaderboardButton.style("color", "white");
   leaderboardButton.style("cursor", "pointer");
   leaderboardButton.style("font-family", "Rubik Glitch");
   leaderboardButton.position(100, height / 2 + 100);
-  leaderboardButton.mouseOver(() => leaderboardButton.style("color", "blue"));
-  leaderboardButton.mouseOut(() => leaderboardButton.style("color", "black"));
+  leaderboardButton.mouseOver(() => leaderboardButton.style("color", lightBlue));
+  leaderboardButton.mouseOut(() => leaderboardButton.style("color", "#ffffff"));
   
   //player.debug = true;
   bullets = new Group();
@@ -104,6 +108,18 @@ function setup() {
   shooBullets = new Group();
   startButton.mousePressed(() => {
     state = 1;
+    startButton.remove();
+    controlsButton.remove();
+    leaderboardButton.remove();
+  });
+  controlsButton.mousePressed(() => {
+    state = 2;
+    startButton.remove();
+    controlsButton.remove();
+    leaderboardButton.remove();
+  });
+  leaderboardButton.mousePressed(() => {
+    state = 3;
     startButton.remove();
     controlsButton.remove();
     leaderboardButton.remove();
