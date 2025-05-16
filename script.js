@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
@@ -110,6 +110,36 @@ function setup() {
   backButton.mouseOver(() => backButton.style("color", lightBlue));
   backButton.mouseOut(() => backButton.style("color", "#ffffff"));
   backButton.hide();
+  nextButton = createButton('NEXT');
+  nextButton.style("all", "unset");
+  nextButton.style('font-size', '50px');
+  nextButton.style("color", "white");
+  nextButton.style("cursor", "pointer");
+  nextButton.style("font-family", "Rubik Glitch");
+  nextButton.position(width - 200, height - 100);
+  nextButton.mouseOver(() => nextButton.style("color", lightBlue));
+  nextButton.mouseOut(() => nextButton.style("color", "#ffffff"));
+  nextButton.hide();
+  leftArrow = createButton('<');
+  leftArrow.style("all", "unset");
+  leftArrow.style('font-size', '50px');
+  leftArrow.style("color", "white");
+  leftArrow.style("cursor", "pointer");
+  leftArrow.style("font-family", "Rubik Glitch");
+  leftArrow.position(100, height/2-150);
+  leftArrow.mouseOver(() => leftArrow.style("color", lightBlue));
+  leftArrow.mouseOut(() => leftArrow.style("color", "#ffffff"));
+  leftArrow.hide();
+  rightArrow = createButton('>');
+  rightArrow.style("all", "unset");
+  rightArrow.style('font-size', '50px');
+  rightArrow.style("color", "white");
+  rightArrow.style("cursor", "pointer");
+  rightArrow.style("font-family", "Rubik Glitch");
+  rightArrow.position(width - 100, height/2-150);
+  rightArrow.mouseOver(() => rightArrow.style("color", lightBlue));
+  rightArrow.mouseOut(() => rightArrow.style("color", "#ffffff"));
+  rightArrow.hide();
   //player.debug = true;
   bullets = new Group();
   kamiGroup = new Group();
@@ -117,10 +147,25 @@ function setup() {
   shooGroup = new Group();
   shooBullets = new Group();
   startButton.mousePressed(() => {
-    state = 1;
+    //state = 1;
     startButton.remove();
     controlsButton.remove();
     leaderboardButton.remove();
+    nextButton.show();
+    leftArrow.show();
+    rightArrow.show();
+    leftArrow.mousePressed(() => {
+      if (bulletrotator > 0) bulletrotator--;
+    });
+    rightArrow.mousePressed(() => {
+      if (bulletrotator < 2) bulletrotator++;
+    });
+  });
+  nextButton.mousePressed(() => {
+    state = 1;
+    nextButton.remove();
+    leftArrow.remove();
+    rightArrow.remove();
   });
   controlsButton.mousePressed(() => {
     backButton.show();
@@ -354,10 +399,10 @@ function updateHealthBar() {
   rect(x, y, filledWidth, barHeight, 10);
   console.log("HP:", hitpoints);
 }
-function keyPressed() { //changes bullet type
-    if (keyCode === 38 && bulletrotator < 2) bulletrotator++;
-    else if (keyCode === 40 && bulletrotator > 0) bulletrotator--;
-}
+// function keyPressed() { //changes bullet type
+//     if (keyCode === 38 && bulletrotator < 2) bulletrotator++;
+//     else if (keyCode === 40 && bulletrotator > 0) bulletrotator--;
+// }
 
 // ───────────────────────────── STAGE LOADER────────────────────────────
 function stageLoader(stage, level) {
