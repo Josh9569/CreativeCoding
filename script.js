@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
@@ -56,6 +56,7 @@ function preload() {
     shooSpawnData = loadJSON('json/shooter.json');
     font = loadFont('assets/RubikGlitch-Regular.ttf');
     menubg = loadImage('assets/mainmenu.png');
+    controls = loadImage('assets/controls.png');
 }
 
 // ───────────────────────────── SETUP ─────────────────────────────
@@ -99,7 +100,16 @@ function setup() {
   leaderboardButton.position(100, height / 2 + 100);
   leaderboardButton.mouseOver(() => leaderboardButton.style("color", lightBlue));
   leaderboardButton.mouseOut(() => leaderboardButton.style("color", "#ffffff"));
-  
+  backButton = createButton('BACK');
+  backButton.style("all", "unset");
+  backButton.style('font-size', '50px');
+  backButton.style("color", "white");
+  backButton.style("cursor", "pointer");
+  backButton.style("font-family", "Rubik Glitch");
+  backButton.position(100, height - 100);
+  backButton.mouseOver(() => backButton.style("color", lightBlue));
+  backButton.mouseOut(() => backButton.style("color", "#ffffff"));
+  backButton.hide();
   //player.debug = true;
   bullets = new Group();
   kamiGroup = new Group();
@@ -113,13 +123,21 @@ function setup() {
     leaderboardButton.remove();
   });
   controlsButton.mousePressed(() => {
-    state = 2;
-    startButton.remove();
-    controlsButton.remove();
-    leaderboardButton.remove();
+    backButton.show();
+    startButton.hide();
+    controlsButton.hide();
+    leaderboardButton.hide();
+    image(controls, 0, 0, width, height);
+  });
+  backButton.mousePressed(() => {
+    background(menubg);
+    startButton.show();
+    controlsButton.show();
+    leaderboardButton.show();
+    backButton.hide();
+
   });
   leaderboardButton.mousePressed(() => {
-    state = 3;
     startButton.remove();
     controlsButton.remove();
     leaderboardButton.remove();
@@ -169,7 +187,7 @@ function manageKamikazeWaves() {
   if (waveKActive && !waveKSpawned && millis() - warningStartTimeK < warningDelayK) {
     for (let pt of warningPatternK.points) {
       push();
-      tint(0, 155, 255, 100);
+      tint(255, 168, 51, 100);
       image(kamiimg, pt.x - 15, pt.y - 15, kamiimg.width * 0.1, kamiimg.height * 0.1);
       pop();
     }
@@ -209,7 +227,7 @@ function managePatternWaves() {
     if (!wavePSpawned && millis() - warningStartTimeP < warningDelayP) {
       for (let pt of warningPatternP.points) {
         push();
-        tint(0, 155, 255, 100);
+        tint(255, 168, 51);
         let ptx = pt.x - 15;// Adjusted x position
         let pty = pt.y - 15;// Adjusted y position
         if (petdirectionP === -1) {
@@ -268,7 +286,7 @@ if (!waveSActive && wavesofS > 0) {
 if (waveSActive && !waveSSpawned && millis() - warningStartTimeS < warningDelayS) {
   for (let pt of warningPatternS.points) {
     push();
-    tint(0, 155, 255, 100);
+    tint(255, 168, 51, 100);
     image(shooimg, pt.x-15, pt.y-19, shooimg.width *0.1, shooimg.height *0.1);
     pop();
   }
@@ -300,10 +318,14 @@ function bulletHitsEnemy(bullet, enemy) {
 }
 
 function playerHitsEnemy(player, enemy) {
-    if (shooBullets.includes(enemy)) {
+    if (shooBullets.contains(enemy)) {
         hitpoints -= 5;
-    } else if (kamiGroup.includes(enemy)) {
+    } else if (kamiGroup.contains(enemy)) {
         hitpoints -= 10;
+    } else if (patGroup.contains(enemy)) {
+        hitpoints -= 5;
+    } else if (shooGroup.contains(enemy)) {
+        hitpoints -= 5;
     }
     //Game Over Detection
     if (hitpoints <= 0) {
@@ -391,8 +413,7 @@ function stageLoader(stage, level) {
 
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
-  if (state === 0) {
-  } else if (state === 1) {
+  if (state === 1) {
     if (!stageInitialized) {
       stageLoader(currentStage, currentLevel);
       stageInitialized = true;
@@ -518,5 +539,6 @@ function draw() {
   text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
   text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
   text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
+  }  else if (state === 0) {
   }
 }
