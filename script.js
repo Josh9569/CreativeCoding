@@ -282,6 +282,33 @@ function wheavy(direction) {
 }
 
 // ───────────────────────────── ENEMIES ─────────────────────────────
+function createKami(x, y) {
+  let k = createSprite(x, y, 15);
+  k.addImage(kamiimg); // only safe to call once per sprite creation
+  k.scale = 0.1;
+  k.shapeColor = color(255, 0, 0);
+  k.friction = 0.1;
+  k.setCollider("circle", 0, 0, 70);
+  return k;
+}
+
+function createPattern(x, y, direction) {
+  let p = createSprite(x, y, 15);
+  p.addImage(direction === -1 ? patimg : patimg2);
+  p.scale = 0.1;
+  p.shapeColor = color(255, 0, 0);
+  p.velocity.x = direction * 2.5;
+  return p;
+}
+
+function createShooter(x, y) {
+  let s = createSprite(x, y, 15);
+  s.addImage(shooimg);
+  s.scale = 0.1;
+  s.shapeColor = color(0, 255, 0);
+  s.immovable = true;
+  return s;
+}
 
 function manageKamikazeWaves() {
   if (!waveKActive && wavesofK > 0) {
@@ -301,15 +328,10 @@ function manageKamikazeWaves() {
   }
 
   if (waveKActive && !waveKSpawned && millis() - warningStartTimeK >= warningDelayK) {
-      for (let pt of warningPatternK.points) {
-        let k = createSprite(pt.x, pt.y, 15);
-        k.addImage(kamiimg);
-        k.scale = 0.1;
-        k.shapeColor = color(255, 0, 0);
-        k.friction = 0.1;
-        k.setCollider("circle", 0, 0, 70)
-        kamiGroup.add(k);
-      }
+    for (let pt of warningPatternK.points) {
+      let k = createKami(pt.x, pt.y);
+      kamiGroup.add(k);
+    }
     waveKSpawned = true;
   }
 
@@ -318,6 +340,7 @@ function manageKamikazeWaves() {
     waveKActive = false;
   }
 }
+
 
 function managePatternWaves() {
   // Warning phase
@@ -350,15 +373,7 @@ function managePatternWaves() {
     // Spawn enemies after delay
     if (!wavePSpawned && millis() - warningStartTimeP >= warningDelayP) {
       for (let pt of warningPatternP.points) {
-        let p = createSprite(pt.x, pt.y, 15);
-        p.shapeColor = color(255, 0, 0);
-        p.velocity.x = petdirectionP * 2.5;
-        if (petdirectionP === -1) {
-          p.addImage(patimg);
-        } else {
-          p.addImage(patimg2);
-        }
-        p.scale = 0.1;
+        let p = createPattern(pt.x, pt.y, petdirectionP);
         patGroup.add(p);
       }
       wavePSpawned = true;
@@ -383,39 +398,36 @@ function managePatternWaves() {
 }
 
 function manageShooterWaves() {
-if (!waveSActive && wavesofS > 0) {
-  warningPatternS = random(shooSpawnData.patterns);
-  warningStartTimeS = millis();
-  waveSActive = true;
-  waveSSpawned = false;
-}
+  if (!waveSActive && wavesofS > 0) {
+    warningPatternS = random(shooSpawnData.patterns);
+    warningStartTimeS = millis();
+    waveSActive = true;
+    waveSSpawned = false;
+  }
 
-if (waveSActive && !waveSSpawned && millis() - warningStartTimeS < warningDelayS) {
-  for (let pt of warningPatternS.points) {
-    push();
-    tint(255, 168, 51, 100);
-    image(shooimg, pt.x-15, pt.y-19, shooimg.width *0.1, shooimg.height *0.1);
-    pop();
+  if (waveSActive && !waveSSpawned && millis() - warningStartTimeS < warningDelayS) {
+    for (let pt of warningPatternS.points) {
+      push();
+      tint(255, 168, 51, 100);
+      image(shooimg, pt.x - 15, pt.y - 19, shooimg.width * 0.1, shooimg.height * 0.1);
+      pop();
+    }
+  }
+
+  if (waveSActive && !waveSSpawned && millis() - warningStartTimeS >= warningDelayS) {
+    for (let pt of warningPatternS.points) {
+      let s = createShooter(pt.x, pt.y);
+      shooGroup.add(s);
+    }
+    waveSSpawned = true;
+  }
+
+  if (waveSActive && waveSSpawned && shooGroup.length === 0) {
+    wavesofS--;
+    waveSActive = false;
   }
 }
 
-if (waveSActive && !waveSSpawned && millis() - warningStartTimeS >= warningDelayS) {
-  for (let pt of warningPatternS.points) {
-    let s = createSprite(pt.x, pt.y, 15);
-    s.shapeColor = color(0, 255, 0);
-    s.immovable = true;
-    s.addImage(shooimg);
-    s.scale = 0.1;
-    shooGroup.add(s);
-  }
-  waveSSpawned = true;
-}
-
-if (waveSActive && waveSSpawned && shooGroup.length === 0) {
-  wavesofS--;
-  waveSActive = false;
-}
-}
 
 // ───────────────────────────── COLLISIONS ──────────────────────────
 
@@ -534,6 +546,9 @@ function draw() {
   }
   imageMode(CORNER);
   if (state === 1) {
+    menuvid.stop();
+    menuvid.hide();
+    menuvid.remove();
     background(0);
     if (!stageInitialized) {
       stageLoader(currentStage, currentLevel);
