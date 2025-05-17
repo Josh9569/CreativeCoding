@@ -422,7 +422,7 @@ function playerHitsEnemy(player, enemy) {
 
 // ───────────────────────────── PLAYER─────────────────────────────
 
-function updateHealthBar() {
+function ui() {
   const barWidth = 200;
   const barHeight = 10;
   const x = 10;
@@ -438,6 +438,8 @@ function updateHealthBar() {
   let filledWidth = map(hitpoints, 0, hitpointsMax, 0, barWidth);
   rect(x, y, filledWidth, barHeight, 10);
   console.log("HP:", hitpoints);
+  fill(255);
+  text("Stage " + currentStage + "\nLevel " + currentLevel, 10, 40);
 }
 // function keyPressed() { //changes bullet type
 //     if (keyCode === 38 && bulletrotator < 2) bulletrotator++;
@@ -448,7 +450,7 @@ function updateHealthBar() {
 function stageLoader(stage, level) {
   console.log(`Loading Stage ${stage} Level ${level}`);
 
-  // Clear existing groups and reset wave flags
+  // Clear groups and reset wave flags
   kamiGroup.removeSprites();
   patGroup.removeSprites();
   shooGroup.removeSprites();
@@ -499,7 +501,6 @@ function stageLoader(stage, level) {
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
   
-  
   if (menuState === "selectBullet") {
     imageMode(CENTER);
     if (bulletrotator === 0) {
@@ -517,7 +518,7 @@ function draw() {
       stageLoader(currentStage, currentLevel);
       stageInitialized = true;
     }
-
+    
     if (waveKSpawned) {
       for (let k of kamiGroup) {
         k.attractionPoint(0.2, player.position.x, player.position.y);
@@ -613,7 +614,7 @@ function draw() {
     managePatternWaves();
     manageShooterWaves();
     pop();
-    updateHealthBar();
+    ui();
   if (wavesofK <= 0 && wavesofP <= 0 && wavesofS <= 0) {
     if (currentLevel === 3) {
       currentStage++;
