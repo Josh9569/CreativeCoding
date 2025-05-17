@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
@@ -88,6 +88,12 @@ function setup() {
   player.setCollider("rectangle", 0, 0, 100, 100);
   // MENU
   const lightBlue = "#e0f7fa";
+  menuTitle = createButton('PROJECT SSR');
+  menuTitle.style("all", "unset");
+  menuTitle.style('font-size', '80px');
+  menuTitle.style("color", "white");
+  menuTitle.style("font-family", "Rubik Glitch");
+  menuTitle.position(100, height / 2 - 250);
   startButton = createButton('START');
   startButton.style("all", "unset");
   startButton.style('font-size', '50px');
@@ -173,6 +179,7 @@ function setup() {
   shooBullets = new Group();
   startButton.mousePressed(() => {
     background(menubg);
+    menuTitle.hide();
     startButton.hide();
     controlsButton.hide();
     leaderboardButton.hide();
@@ -219,8 +226,10 @@ function setup() {
     startButton.hide();
     controlsButton.hide();
     leaderboardButton.hide();
+    menuTitle.hide();
   });
   backButton.mousePressed(() => {
+    menuTitle.show();
     startButton.show();
     controlsButton.show();
     leaderboardButton.show();
@@ -236,6 +245,7 @@ function setup() {
     startButton.hide();
     controlsButton.hide();
     leaderboardButton.hide();
+    menuTitle.hide();
     backButton.show();
   });
 }
