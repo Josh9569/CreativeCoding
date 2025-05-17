@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let camX = 0;
@@ -45,30 +45,41 @@ let warningPatternP = null;
 // ───────────────────────────── PRELOAD ASSETS ─────────────────────────────
 
 function preload() {
-    stageData = loadJSON('json/stage.json');
-    playerleft = loadImage('assets/player left.png');
-    playerright = loadImage('assets/player right.png');
-    kamiimg = loadImage('assets/kamikaze.png');
-    kamiSpawnData = loadJSON('json/kamikaze.json');
-    patimg = loadImage('assets/pattern.png');
-    patimg2 = loadImage('assets/pattern2.png');
-    patSpawnData = loadJSON('json/pattern.json');
-    shooimg = loadImage('assets/shooter.png');
-    shooSpawnData = loadJSON('json/shooter.json');
-    font = loadFont('assets/RubikGlitch-Regular.ttf');
-    menubg = loadImage('assets/menu.png');
-    mainmenubg = loadImage('assets/mainmenu.png');
-    controls = loadImage('assets/controls.png');
-    pulse = loadImage('assets/linear pulse.png');
-    fracture = loadImage('assets/fracture.png');
-    gravetide = loadImage('assets/gravetide.png');
+  stageData = loadJSON('json/stage.json');
+  playerleft = loadImage('assets/player left.png');
+  playerright = loadImage('assets/player right.png');
+  kamiimg = loadImage('assets/kamikaze.png');
+  kamiSpawnData = loadJSON('json/kamikaze.json');
+  patimg = loadImage('assets/pattern.png');
+  patimg2 = loadImage('assets/pattern2.png');
+  patSpawnData = loadJSON('json/pattern.json');
+  shooimg = loadImage('assets/shooter.png');
+  shooSpawnData = loadJSON('json/shooter.json');
+  font = loadFont('assets/RubikGlitch-Regular.ttf');
+  menubg = loadImage('assets/menu.png');
+  controls = loadImage('assets/controls.png');
+  pulse = loadImage('assets/linear pulse.png');
+  fracture = loadImage('assets/fracture.png');
+  gravetide = loadImage('assets/gravetide.png');
+  stageBackgrounds = {
+    "1": loadImage('assets/stage 1 bg.png'),
+    "2": loadImage('assets/stage 2 bg.png'),
+    "3": loadImage('assets/stage 3 bg.png')
+  };
 }
+
 
 // ───────────────────────────── SETUP ─────────────────────────────
 
 function setup() {
-  createCanvas(800, 600);
+  canvas = createCanvas(800, 600);
+  canvas.position(0,0);
   textFont(font)
+  menuvid = createVideo('assets/mainmenu.mp4');
+  menuvid.volume(0);
+  menuvid.autoplay();
+  menuvid.loop();
+  menuvid.hide();
   player = createSprite(worldWidth / 2, height / 2, 40, 40);
   player.addImage("left", playerleft);
   player.addImage("right", playerright);
@@ -76,7 +87,6 @@ function setup() {
   player.changeImage("right");
   player.setCollider("rectangle", 0, 0, 100, 100);
   // MENU
-  background(mainmenubg);
   const lightBlue = "#e0f7fa";
   startButton = createButton('START');
   startButton.style("all", "unset");
@@ -199,17 +209,18 @@ function setup() {
     rightArrow.remove();
     difficulty.remove();
     backButton.remove();
+    menuvid.stop();
+    menuvid.hide();
   });
   controlsButton.mousePressed(() => {
+    menuState = "controls";
     background(menubg);
     backButton.show();
     startButton.hide();
     controlsButton.hide();
     leaderboardButton.hide();
-    image(controls, 0, 0, width, height);
   });
   backButton.mousePressed(() => {
-    background(mainmenubg);
     startButton.show();
     controlsButton.show();
     leaderboardButton.show();
@@ -471,26 +482,19 @@ function stageLoader(stage, level) {
   warningStartTimeP = 0;
   warningStartTimeS = 0;
 
-  // Load from JSON
   const stageKey = String(stage);
   const levelKey = String(level);
 
-  if (
-    stageData.stages &&
-    stageData.stages[stageKey] &&
-    stageData.stages[stageKey][levelKey]
-  ) {
-    const config = stageData.stages[stageKey][levelKey];
+  const stageObj = stageData.stages[stageKey];
+  if (stageObj && stageObj[levelKey]) {
+    const config = stageObj[levelKey];
 
     wavesofK = config.wavesofK;
     wavesofP = config.wavesofP;
     wavesofS = config.wavesofS;
 
-    stageBgImg = loadImage(config.background);
-  } else {
-    console.warn(`Stage ${stage} Level ${level} not found`);
+    stageBgImg = stageBackgrounds[stageKey];
   }
-
   player.position.x = worldWidth / 2;
   player.position.y = height / 2;
 
@@ -498,10 +502,13 @@ function stageLoader(stage, level) {
 }
 
 
+
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
-  
-  if (menuState === "selectBullet") {
+  if (menuState === "main") {
+    image(menuvid, 0, 0, width, height);
+  } else if (menuState === "selectBullet") {
+    image(menuvid, 0, 0, width, height);
     imageMode(CENTER);
     if (bulletrotator === 0) {
       image(pulse, 250, 200);
@@ -509,7 +516,10 @@ function draw() {
       image(fracture, 250, 200);
     } else if (bulletrotator === 2) {
       image(gravetide, 250, 200);
-    }
+    } imageMode(CORNER);
+  } else if (menuState === "controls") {
+    image(menuvid, 0, 0, width, height);
+    image(controls, 0, 0, width, height);
   }
   imageMode(CORNER);
   if (state === 1) {
