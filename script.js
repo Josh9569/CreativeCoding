@@ -218,6 +218,7 @@ function setup() {
     backButton.remove();
     menuvid.stop();
     menuvid.hide();
+    menuvid.remove();
   });
   controlsButton.mousePressed(() => {
     menuState = "controls";
@@ -659,6 +660,11 @@ function draw() {
   text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
   text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
   text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
+  fill(255);
+  textAlign(LEFT, TOP);
+  textSize(16);
+  text("FPS: " + Math.round(frameRate()), 10, height - 20);
+
   }  else if (state === 0) {
   }
 }
