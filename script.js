@@ -3,6 +3,7 @@
 let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle;
 let worldWidth = 1500;
 let playerSpeed = 5;
+let score = 0;
 let camX = 0;
 let state = 0;
 let bulletrotator = 0;
@@ -428,10 +429,16 @@ function manageShooterWaves() {
   }
 }
 
-
 // ───────────────────────────── COLLISIONS ──────────────────────────
 
 function bulletHitsEnemy(bullet, enemy) {
+    if (kamiGroup.contains(enemy)) {
+        score += 10;
+    } else if (patGroup.contains(enemy)) {
+        score += 5;
+    } else if (shooGroup.contains(enemy)) {
+        score += 5;
+    }
     bullet.remove();
     enemy.remove();
 }
@@ -445,11 +452,6 @@ function playerHitsEnemy(player, enemy) {
         hitpoints -= 5;
     } else if (shooGroup.contains(enemy)) {
         hitpoints -= 5;
-    }
-    //Game Over Detection
-    if (hitpoints <= 0) {
-      console.log("Game Over");
-      noLoop();
     }
     enemy.remove();
 }
@@ -679,7 +681,19 @@ function draw() {
   textAlign(LEFT, TOP);
   textSize(16);
   text("FPS: " + Math.round(frameRate()), 10, height - 20);
-
+  textAlign(RIGHT, TOP);
+  text(`Score: ${score}`, width - 10, 10);
+  textAlign(LEFT, TOP);
+  if (hitpoints <= 0) {
+    textSize(50);
+    fill(195, 34, 34);
+    textAlign(CENTER, CENTER);
+    text("SCORE: " + score, width / 2, height / 2 - 50);
+    text("GAME OVER", width / 2, height / 2);
+    textSize(20);
+    text("Press R to restart (jk it does nothing)", width / 2, height / 2 + 50);
+    noLoop();
+  }
   }  else if (state === 0) {
   }
 }
