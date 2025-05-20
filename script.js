@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let score = 0;
@@ -17,6 +17,10 @@ let currentStage = 1;
 let currentLevel = 1;
 let stageInitialized = false;
 let menuState = "main";
+let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]];
+let gameOver = false;
+let scoreSubmitted = false;
+let isPaused = false;
 
 // Kamikaze wave
 let wavesofK = 5;
@@ -179,7 +183,6 @@ function setup() {
   shooGroup = new Group();
   shooBullets = new Group();
   startButton.mousePressed(() => {
-    background(menubg);
     menuTitle.hide();
     startButton.hide();
     controlsButton.hide();
@@ -212,18 +215,17 @@ function setup() {
   });
   nextButton.mousePressed(() => {
     state = 1;
-    nextButton.remove();
-    leftArrow.remove();
-    rightArrow.remove();
-    difficulty.remove();
-    backButton.remove();
+    nextButton.hide();
+    leftArrow.hide();
+    rightArrow.hide();
+    difficulty.hide();
+    backButton.hide();
     menuvid.stop();
     menuvid.hide();
-    menuvid.remove();
+    menuState = "";
   });
   controlsButton.mousePressed(() => {
     menuState = "controls";
-    background(menubg);
     backButton.show();
     startButton.hide();
     controlsButton.hide();
@@ -231,25 +233,17 @@ function setup() {
     menuTitle.hide();
   });
   backButton.mousePressed(() => {
-    menuTitle.show();
-    startButton.show();
-    controlsButton.show();
-    leaderboardButton.show();
-    backButton.hide();
-    nextButton.hide();
-    leftArrow.hide();
-    rightArrow.hide();
-    difficulty.hide();
-    menuState = "main";
-  });
+    showMainMenu();
+});
   leaderboardButton.mousePressed(() => {
-    background(menubg);
     startButton.hide();
     controlsButton.hide();
     leaderboardButton.hide();
     menuTitle.hide();
     backButton.show();
+    menuState = "leaderboard";
   });
+
 }
 
 // ───────────────────────────── WEAPONS ─────────────────────────────
@@ -341,7 +335,6 @@ function manageKamikazeWaves() {
     waveKActive = false;
   }
 }
-
 
 function managePatternWaves() {
   // Warning phase
@@ -482,6 +475,68 @@ function ui() {
 //     else if (keyCode === 40 && bulletrotator > 0) bulletrotator--;
 // }
 
+// ───────────────────────────── MENU STUFF ─────────────────────────────
+
+function submitScore() {
+  username = createInput('Pilot');
+  username.position(width / 2 - 100, height / 2 - 50);
+  username.size(200);
+  username.attribute('placeholder', 'Pilot Name');
+
+  let submitButton = createButton('Submit');
+  submitButton.position(width / 2 - 100, height / 2);
+  submitButton.mousePressed(() => {
+    let name = username.value().trim();
+    leaderBoard.push([name, score]);
+
+    score = 0;
+    gameOver = true;
+    username.remove();
+    submitButton.remove();
+    menuState = "leaderboard";
+
+    console.log("Score submitted:", name);
+  });
+}
+
+function showMainMenu() {
+  menuState = "main";
+  image(menubg, 0, 0, width, height);
+  menuvid.loop();
+  // Show main menu elements
+  menuTitle.show();
+  startButton.show();
+  controlsButton.show();
+  leaderboardButton.show();
+
+  // Hide everything else
+  backButton.hide();
+  nextButton.hide();
+  leftArrow.hide();
+  rightArrow.hide();
+  difficulty.hide();
+}
+
+function keyPressed() {
+  if (keyCode === 27) { // Escape key
+    isPaused = !isPaused;
+  }
+  if (keyCode === 82) { // R key
+if (scoreSubmitted === true) {
+    scoreSubmitted = false;
+    gameOver = false;
+    isPaused = false;
+    hitpoints = hitpointsMax;
+    menuState = "main";
+    showMainMenu();
+    state = 0;
+    currentStage = 1;
+    currentLevel = 1;
+    stageInitialized = false;
+  }
+  }
+}
+
 // ───────────────────────────── STAGE LOADER────────────────────────────
 function stageLoader(stage, level) {
   console.log(`Loading Stage ${stage} Level ${level}`);
@@ -530,170 +585,192 @@ function stageLoader(stage, level) {
 
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
-  if (menuState === "main") {
-    image(menuvid, 0, 0, width, height);
-  } else if (menuState === "selectBullet") {
-    image(menuvid, 0, 0, width, height);
-    imageMode(CENTER);
-    if (bulletrotator === 0) {
-      image(pulse, 250, 200);
-    } else if (bulletrotator === 1) {
-      image(fracture, 250, 200);
-    } else if (bulletrotator === 2) {
-      image(gravetide, 250, 200);
-    } imageMode(CORNER);
-  } else if (menuState === "controls") {
-    image(menuvid, 0, 0, width, height);
-    image(controls, 0, 0, width, height);
+  if (state === 0) {
+    if (menuState === "main") {
+      image(menuvid, 0, 0, width, height);
+    } else if (menuState === "selectBullet") {
+      image(menuvid, 0, 0, width, height);
+      imageMode(CENTER);
+      if (bulletrotator === 0) {
+        image(pulse, 250, 200);
+      } else if (bulletrotator === 1) {
+        image(fracture, 250, 200);
+      } else if (bulletrotator === 2) {
+        image(gravetide, 250, 200);
+      } imageMode(CORNER);
+    } else if (menuState === "controls") {
+      image(menuvid, 0, 0, width, height);
+      image(controls, 0, 0, width, height);
+    }
+    imageMode(CORNER);
+    if (menuState === "leaderboard") {
+      textAlign(CENTER, CENTER);
+      textSize(50);
+      fill(255);
+      text("LEADERBOARD", width / 2, height / 2 - 200);
+      for (let i = 0; i < leaderBoard.length; i++) {
+        let entry = leaderBoard[i];
+        let name = entry[0];
+        let score = entry[1];
+        let y = height / 2 - 100 + i * 50;
+        textSize(30);
+        fill(255);
+        textAlign(CENTER);
+        text(name + ": " + score, width / 2, y);
+      }
+      textAlign(LEFT);
+
+    }
   }
-  imageMode(CORNER);
   if (state === 1) {
-    menuvid.stop();
-    menuvid.hide();
-    menuvid.remove();
-    background(0);
+    if (!isPaused) {
+      background(0);
+      if (!stageInitialized) {
+        stageLoader(currentStage, currentLevel);
+        stageInitialized = true;
+      }
+      
+      if (waveKSpawned) {
+        for (let k of kamiGroup) {
+          k.attractionPoint(0.2, player.position.x, player.position.y);
+          let dx = player.position.x - k.position.x;
+          let dy = player.position.y - k.position.y;
+          k.rotation = degrees(atan2(dy, dx));
+        }
+      }
+
+      if (waveSSpawned) {
+        let shooterWaitTime = 2000;
+        for (let s of shooGroup) {
+          if (s.lastShotTime === undefined) s.lastShotTime = 0;
+          if (millis() - s.lastShotTime >= shooterWaitTime) {
+            let k = createSprite(s.position.x, s.position.y, 5);
+            k.shapeColor = color(255, 100, 100);
+            let dx = player.position.x - s.position.x;
+            let dy = player.position.y - s.position.y;
+            let mag = sqrt(dx * dx + dy * dy);
+            let bulletSpeed = 3;
+            k.velocity.x = (dx / mag) * bulletSpeed;
+            k.velocity.y = (dy / mag) * bulletSpeed;
+            shooBullets.add(k);
+            s.lastShotTime = millis();
+          }
+        }
+      }
+
+      if (bulletrotator == 1) {
+          while (bullets.length > 200) {
+              bullets[0].remove();
+          }
+      } else if (bulletrotator == 2) {
+          while (bullets.length > 50) {
+              bullets[0].remove();
+          }
+        } else if (bulletrotator == 0) {
+          while (bullets.length > 70) {
+              bullets[0].remove();
+          }
+        }
+      bulletColor = color(137, 207, 240);
+      if (keyIsDown(37)) {
+        if (bulletrotator == 0) wlight(-12);
+        else if (bulletrotator == 1) wmedium(-7, 1, -1);
+        else if (bulletrotator == 2) wheavy(-6);
+      } else if (keyIsDown(39)) {
+        if (bulletrotator == 0) wlight(12);
+        else if (bulletrotator == 1) wmedium(7, 1, -1);
+        else if (bulletrotator == 2) wheavy(9);
+      }
+      bullets.collide(kamiGroup, bulletHitsEnemy);
+      player.overlap(kamiGroup, playerHitsEnemy);
+      bullets.collide(patGroup, bulletHitsEnemy);
+      player.overlap(patGroup, playerHitsEnemy);
+      bullets.collide(shooGroup, bulletHitsEnemy);
+      player.overlap(shooGroup, playerHitsEnemy);
+      player.overlap(shooBullets, playerHitsEnemy);
+      bullets.overlap(shooBullets, bulletHitsEnemy);
+      kamiGroup.collide(kamiGroup);
+      patGroup.collide(patGroup);
+      kamiGroup.collide(patGroup);
+      shooGroup.collide(kamiGroup);
+      shooGroup.collide(patGroup);
+
+      player.velocity.x = 0;
+      player.velocity.y = 0;
+      if (keyIsDown(65)) {
+        player.velocity.x = -playerSpeed;
+        player.changeImage("left");
+      }
+      if (keyIsDown(68)) {
+        player.velocity.x = playerSpeed;
+        player.changeImage("right");
+      }
+      if (keyIsDown(87)) player.velocity.y = -4;
+      if (keyIsDown(83)) player.velocity.y = 4;
+
+      player.position.x = constrain(player.position.x, 0, worldWidth);
+      player.position.y = constrain(player.position.y, 0, height);
+      camX = constrain(player.position.x - width / 2, 0, worldWidth - width);
+
+    if (stageBgImg) {
+      for (let x = 0; x < worldWidth; x += stageBgImg.width) {
+        image(stageBgImg, x - camX, 0, stageBgImg.width, height);
+      }
+    }
+
+      push();
+      translate(-camX, 0);
+      drawSprites();
+      manageKamikazeWaves();
+      managePatternWaves();
+      manageShooterWaves();
+      pop();
+      ui();
+    if (wavesofK <= 0 && wavesofP <= 0 && wavesofS <= 0) {
+      if (currentLevel === 3) {
+        currentStage++;
+        currentLevel = 1;
+      } else {
+        currentLevel++;
+      }
+      stageInitialized = false;
+    }
+
     if (!stageInitialized) {
       stageLoader(currentStage, currentLevel);
       stageInitialized = true;
     }
-    
-    if (waveKSpawned) {
-      for (let k of kamiGroup) {
-        k.attractionPoint(0.2, player.position.x, player.position.y);
-        let dx = player.position.x - k.position.x;
-        let dy = player.position.y - k.position.y;
-        k.rotation = degrees(atan2(dy, dx));
+
+    fill(255);
+    textAlign(CENTER);
+    text(`Y: ${player.position.y.toFixed(0)}`, width / 2, height - 100);
+    text(`X: ${player.position.x.toFixed(0)}`, width / 2, height - 90);
+    text(`Kamikaze Waves Remaining: ${wavesofK}`, width / 2, height - 80);
+    text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
+    text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
+    text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(16);
+    text("FPS: " + Math.round(frameRate()), 10, height - 20);
+    textAlign(RIGHT, TOP);
+    text(`Score: ${score}`, width - 10, 10);
+    textAlign(LEFT, TOP);
+    // Game Over screen & Leaderboard logging
+    }
+    if (hitpoints <= 0) {
+      isPaused = true;
+      textSize(50);
+      fill(195, 34, 34);
+      textAlign(CENTER, CENTER);
+      text("SCORE: " + score, width / 2, height / 2 - 50);
+      text("GAME OVER", width / 2, height / 2);
+      textSize(20);
+      text("Press R to restart", width / 2, height / 2 + 50);
+      if (!scoreSubmitted) {
+        submitScore();
+        scoreSubmitted = true;
       }
     }
-
-    if (waveSSpawned) {
-      let shooterWaitTime = 2000;
-      for (let s of shooGroup) {
-        if (s.lastShotTime === undefined) s.lastShotTime = 0;
-        if (millis() - s.lastShotTime >= shooterWaitTime) {
-          let k = createSprite(s.position.x, s.position.y, 5);
-          k.shapeColor = color(255, 100, 100);
-          let dx = player.position.x - s.position.x;
-          let dy = player.position.y - s.position.y;
-          let mag = sqrt(dx * dx + dy * dy);
-          let bulletSpeed = 3;
-          k.velocity.x = (dx / mag) * bulletSpeed;
-          k.velocity.y = (dy / mag) * bulletSpeed;
-          shooBullets.add(k);
-          s.lastShotTime = millis();
-        }
-      }
-    }
-
-    if (bulletrotator == 1) {
-        while (bullets.length > 200) {
-            bullets[0].remove();
-        }
-    } else if (bulletrotator == 2) {
-        while (bullets.length > 50) {
-            bullets[0].remove();
-        }
-      } else if (bulletrotator == 0) {
-        while (bullets.length > 70) {
-            bullets[0].remove();
-        }
-      }
-    bulletColor = color(137, 207, 240);
-    if (keyIsDown(37)) {
-      if (bulletrotator == 0) wlight(-12);
-      else if (bulletrotator == 1) wmedium(-7, 1, -1);
-      else if (bulletrotator == 2) wheavy(-6);
-    } else if (keyIsDown(39)) {
-      if (bulletrotator == 0) wlight(12);
-      else if (bulletrotator == 1) wmedium(7, 1, -1);
-      else if (bulletrotator == 2) wheavy(9);
-    }
-    bullets.collide(kamiGroup, bulletHitsEnemy);
-    player.overlap(kamiGroup, playerHitsEnemy);
-    bullets.collide(patGroup, bulletHitsEnemy);
-    player.overlap(patGroup, playerHitsEnemy);
-    bullets.collide(shooGroup, bulletHitsEnemy);
-    player.overlap(shooGroup, playerHitsEnemy);
-    player.overlap(shooBullets, playerHitsEnemy);
-    bullets.overlap(shooBullets, bulletHitsEnemy);
-    kamiGroup.collide(kamiGroup);
-    patGroup.collide(patGroup);
-    kamiGroup.collide(patGroup);
-    shooGroup.collide(kamiGroup);
-    shooGroup.collide(patGroup);
-
-    player.velocity.x = 0;
-    player.velocity.y = 0;
-    if (keyIsDown(65)) {
-      player.velocity.x = -playerSpeed;
-      player.changeImage("left");
-    }
-    if (keyIsDown(68)) {
-      player.velocity.x = playerSpeed;
-      player.changeImage("right");
-    }
-    if (keyIsDown(87)) player.velocity.y = -4;
-    if (keyIsDown(83)) player.velocity.y = 4;
-
-    player.position.x = constrain(player.position.x, 0, worldWidth);
-    player.position.y = constrain(player.position.y, 0, height);
-    camX = constrain(player.position.x - width / 2, 0, worldWidth - width);
-
-  if (stageBgImg) {
-    for (let x = 0; x < worldWidth; x += stageBgImg.width) {
-      image(stageBgImg, x - camX, 0, stageBgImg.width, height);
-    }
-  }
-
-    push();
-    translate(-camX, 0);
-    drawSprites();
-    manageKamikazeWaves();
-    managePatternWaves();
-    manageShooterWaves();
-    pop();
-    ui();
-  if (wavesofK <= 0 && wavesofP <= 0 && wavesofS <= 0) {
-    if (currentLevel === 3) {
-      currentStage++;
-      currentLevel = 1;
-    } else {
-      currentLevel++;
-    }
-    stageInitialized = false;
-  }
-
-  if (!stageInitialized) {
-    stageLoader(currentStage, currentLevel);
-    stageInitialized = true;
-  }
-
-
-  fill(255);
-  textAlign(CENTER);
-  text(`Y: ${player.position.y.toFixed(0)}`, width / 2, height - 100);
-  text(`X: ${player.position.x.toFixed(0)}`, width / 2, height - 90);
-  text(`Kamikaze Waves Remaining: ${wavesofK}`, width / 2, height - 80);
-  text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
-  text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
-  text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
-  fill(255);
-  textAlign(LEFT, TOP);
-  textSize(16);
-  text("FPS: " + Math.round(frameRate()), 10, height - 20);
-  textAlign(RIGHT, TOP);
-  text(`Score: ${score}`, width - 10, 10);
-  textAlign(LEFT, TOP);
-  if (hitpoints <= 0) {
-    textSize(50);
-    fill(195, 34, 34);
-    textAlign(CENTER, CENTER);
-    text("SCORE: " + score, width / 2, height / 2 - 50);
-    text("GAME OVER", width / 2, height / 2);
-    textSize(20);
-    text("Press R to restart (jk it does nothing)", width / 2, height / 2 + 50);
-    noLoop();
-  }
-  }  else if (state === 0) {
   }
 }
