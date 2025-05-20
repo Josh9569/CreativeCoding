@@ -1,5 +1,5 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
-let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision, splashTimer;
+let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision, splashTimer, submitButton;
 let score = 0, camX = 0, state = 0,bulletrotator = 0,lastShotTime = 0, finalScore = 0;
 let petdirectionP = 1, currentStage = 1, currentLevel = 1;
 let stageInitialized = false, gameOver = false, scoreSubmitted = false, isPaused = false, splashDone = false;
@@ -201,7 +201,7 @@ function wheavy(direction) {
       let w = createSprite(player.position.x, player.position.y, 5);
       w.addImage(wheavyimg);
       w.velocity.x = direction;
-      w.damage = 3;
+      w.damage = 4;
       bullets.add(w);
       lastShotTime = millis();
       bulletStrong.play();
@@ -415,7 +415,7 @@ function submitScore() {
   username.position(width / 2 - 110, height / 2 - 50);
   username.size(200);
   username.attribute('placeholder', 'Pilot Name');
-  let submitButton = createButton('Submit');
+  submitButton = createButton('Submit');
   submitButton.position(width / 2 - 40, height / 2);
   submitButton.mousePressed(() => {
     let name = username.value().trim();
@@ -680,7 +680,7 @@ if (!splashDone) {
       textAlign(CENTER, CENTER);
       text("YOU WON!", width / 2, height / 2);
       text("Press R to restart", width / 2, height / 2 + 50);
-      if (!scoreSubmitted) {
+      if (!scoreSubmitted && !submitButton) {
         submitScore();
       }
     }
@@ -696,7 +696,7 @@ if (!splashDone) {
       text("GAME OVER", width / 2, height / 2);
       textSize(20);
       text("Press R to restart", width / 2, height / 2 + 50);
-      if (!scoreSubmitted) {
+      if (!scoreSubmitted && !submitButton) {
         submitScore();
       }
     }
