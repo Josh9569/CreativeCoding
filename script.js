@@ -549,7 +549,7 @@ function showMainMenu() {
 }
 
 function keyPressed() {
-  if (keyCode === 27) { // Escape key
+  if (keyCode === 27 && !gameOver) { // Escape key
     isPaused = !isPaused;
   }
   if (keyCode === 82) { // R key
