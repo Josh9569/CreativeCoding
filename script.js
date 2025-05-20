@@ -1,25 +1,14 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
-
 let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision;
-let worldWidth = 1500;
+let score = 0, camX = 0, state = 0,bulletrotator = 0,lastShotTime = 0, finalScore = 0;
+let petdirectionP = 1, currentStage = 1, currentLevel = 1;
+let stageInitialized = false, gameOver = false, scoreSubmitted = false, isPaused = false;
 let playerSpeed = 5;
-let score = 0;
-let camX = 0;
-let state = 0;
-let bulletrotator = 0;
-let lastShotTime = 0;
-let petdirectionP = 1;
 let hitpoints = 100; //current hitpoints
 let hitpointsMax = 100; //max hitpoints on hard
-let currentStage = 1;
-let currentLevel = 1;
-let finalScore = 0;
-let stageInitialized = false;
+let worldWidth = 1500;
 let menuState = "main";
 let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]]; //just filling for the leaderboard
-let gameOver = false;
-let scoreSubmitted = false;
-let isPaused = false;
 // Kamikaze enemy
 let wavesofK = 5, waveKActive = false, waveKSpawned = false;
 let warningStartTimeK = 0, warningDelayK = 1000, warningPatternK = null;
@@ -89,6 +78,7 @@ function setup() {
   menuTitle.style("color", "white");
   menuTitle.style("font-family", "Rubik Glitch");
   menuTitle.position(100, height / 2 - 250);
+  
   startButton = createMenuButton('START', 100, height / 2 - 100);
   controlsButton = createMenuButton('CONTROLS',100, height / 2);
   leaderboardButton = createMenuButton('LEADERBOARD',100, height / 2 + 100);
@@ -199,7 +189,7 @@ function wmedium(direction, y1, y2) {
   }
 }
 function wheavy(direction) {
-  const shotCooldown = 100;
+  const shotCooldown = 200;
   if (millis() - lastShotTime > shotCooldown) {
       let w = createSprite(player.position.x, player.position.y, 5);
       w.addImage(wheavyimg);
@@ -391,7 +381,6 @@ function ui() {
   // Calculate the filled width based on hitpoints
   let filledWidth = map(hitpoints, 0, hitpointsMax, 0, barWidth);
   rect(x, y, filledWidth, barHeight, 10);
-  console.log("HP:", hitpoints);
   fill(255);
   text("Stage " + currentStage + "\nLevel " + currentLevel, 10, 40);
 }
@@ -413,7 +402,6 @@ function submitScore() {
   username.position(width / 2 - 100, height / 2 - 50);
   username.size(200);
   username.attribute('placeholder', 'Pilot Name');
-
   let submitButton = createButton('Submit');
   submitButton.position(width / 2 - 100, height / 2);
   submitButton.mousePressed(() => {
@@ -423,7 +411,7 @@ function submitScore() {
     username.remove();
     submitButton.remove();
     menuState = "leaderboard";
-    console.log("Score submitted:", name);
+    scoreSubmitted = true; 
   });
 }
 function showMainMenu() {
@@ -463,7 +451,6 @@ function keyPressed() {
 }
 // ───────────────────────────── STAGE LOADER────────────────────────────
 function stageLoader(stage, level) {
-  console.log(`Loading Stage ${stage} Level ${level}`);
   // Clear groups and reset wave flags
   kamiGroup.removeSprites();
   patGroup.removeSprites();
@@ -494,7 +481,6 @@ function stageLoader(stage, level) {
   }
   player.position.x = worldWidth / 2;
   player.position.y = height / 2;
-  console.log("Stage loaded");
 }
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
@@ -504,12 +490,18 @@ function draw() {
     } else if (menuState === "selectBullet") {
       image(menuvid, 0, 0, width, height);
       imageMode(CENTER);
+      fill(355)
+      textSize(20)
+      textAlign(CENTER, CENTER);
       if (bulletrotator === 0) {
         image(pulse, 250, 200);
+        text('Shoots a rapid string of bullets, \n it deals medium damage but is \neffective in rapidly \ndamaging enemies.', width /2 + 225, height /2 -100)
       } else if (bulletrotator === 1) {
         image(fracture, 250, 200);
+        text('Shoots a spread of bullets, \n it deals light damage but is \neffective in damaging many\n enemies at once.', width /2 + 225, height /2 -100)
       } else if (bulletrotator === 2) {
         image(gravetide, 250, 200);
+        text('Shoots a slow stream of bullets, \n it deals heavy damage.\n If accurate you will destory \nenemies quickly.', width /2 + 225, height /2 -100)
       } imageMode(CORNER);
     } else if (menuState === "controls") {
       image(menuvid, 0, 0, width, height);
@@ -590,7 +582,7 @@ function draw() {
       if (keyIsDown(37)) {
         if (bulletrotator == 0) wlight(-12);
         else if (bulletrotator == 1) wmedium(-7, 1, -1);
-        else if (bulletrotator == 2) wheavy(-6);
+        else if (bulletrotator == 2) wheavy(-9);
       } else if (keyIsDown(39)) {
         if (bulletrotator == 0) wlight(12);
         else if (bulletrotator == 1) wmedium(7, 1, -1);
@@ -672,7 +664,6 @@ function draw() {
       text("Press R to restart", width / 2, height / 2 + 50);
       if (!scoreSubmitted) {
         submitScore();
-        scoreSubmitted = true;
       }
     }
     if (hitpoints <= 0 && !gameOver) {
@@ -689,7 +680,6 @@ function draw() {
       text("Press R to restart", width / 2, height / 2 + 50);
       if (!scoreSubmitted) {
         submitScore();
-        scoreSubmitted = true;
       }
     }
   }
