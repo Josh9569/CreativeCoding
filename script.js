@@ -1,13 +1,12 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak;
+let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let score = 0;
 let camX = 0;
 let state = 0;
 let bulletrotator = 0;
-let playerdirection = 1;
 let lastShotTime = 0;
 let petdirectionP = 1;
 let hitpoints = 100; //current hitpoints
@@ -17,38 +16,20 @@ let currentLevel = 1;
 let finalScore = 0;
 let stageInitialized = false;
 let menuState = "main";
-let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]];
+let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]]; //just filling for the leaderboard
 let gameOver = false;
 let scoreSubmitted = false;
 let isPaused = false;
-
-// Kamikaze wave
-let wavesofK = 5;
-let waveKActive = false;
-let waveKSpawned = false;
-// Shooter wave
-let wavesofS = 5;
-let waveSActive = false;
-let waveSSpawned = false;
-// Pattern wave
-let wavesofP = 5;
-let wavePActive = false;
-let wavePSpawned = false;
-// Kamikaze wave timing
-let warningStartTimeK = 0;
-let warningDelayK = 1000;
-let warningPatternK = null;
-// Shooter wave timing
-let warningStartTimeS = 0;
-let warningDelayS = 1500;
-let warningPatternS = null;
-// Pattern wave timing
-let warningStartTimeP = 0;
-let warningDelayP = 1500;
-let warningPatternP = null;
-
+// Kamikaze enemy
+let wavesofK = 5, waveKActive = false, waveKSpawned = false;
+let warningStartTimeK = 0, warningDelayK = 1000, warningPatternK = null;
+// Shooter enemy
+let wavesofS = 5, waveSActive = false, waveSSpawned = false;
+let warningStartTimeS = 0, warningDelayS = 1500, warningPatternS = null;
+// Pattern enemy
+let wavesofP = 5, wavePActive = false, wavePSpawned = false;
+let warningStartTimeP = 0, warningDelayP = 1500, warningPatternP = null;
 // ───────────────────────────── PRELOAD ASSETS ─────────────────────────────
-
 function preload() {
   stageData = loadJSON('json/stage.json');
   playerleft = loadImage('assets/player left.png');
@@ -66,11 +47,11 @@ function preload() {
   pulse = loadImage('assets/linear pulse.png');
   fracture = loadImage('assets/fracture.png');
   gravetide = loadImage('assets/gravetide.png');
-  stageBackgrounds = {
-    "1": loadImage('assets/stage 1 bg.png'),
-    "2": loadImage('assets/stage 2 bg.png'),
-    "3": loadImage('assets/stage 3 bg.png')
-  };
+  stageBackgrounds = [
+  null, // skipping 0
+  loadImage('assets/stage 1 bg.png'),
+  loadImage('assets/stage 2 bg.png'),
+  loadImage('assets/stage 3 bg.png')];
   wlightimg = loadImage('assets/wlight.png')
   wmediumimg = loadImage('assets/wmedium.png')
   wheavyimg = loadImage('assets/wheavy.png')
@@ -78,10 +59,9 @@ function preload() {
   bulletWeak = loadSound('assets/bullet_weak.ogg');
   deathSound = loadSound('assets/death.ogg');
   enemyDeath = loadSound('assets/enemy_death.ogg')
+  playerCollision = loadSound('assets/player_collision.ogg')
 }
-
 // ───────────────────────────── SETUP ─────────────────────────────
-
 function setup() {
   canvas = createCanvas(800, 600);
   canvas.position(0,0);
@@ -109,82 +89,18 @@ function setup() {
   menuTitle.style("color", "white");
   menuTitle.style("font-family", "Rubik Glitch");
   menuTitle.position(100, height / 2 - 250);
-  startButton = createButton('START');
-  startButton.style("all", "unset");
-  startButton.style('font-size', '50px');
-  startButton.style("color", "white");
-  startButton.style("cursor", "pointer");
-  startButton.style("font-family", "Rubik Glitch");
-  startButton.position(100, height / 2 - 100);
-  startButton.mouseOver(() => startButton.style("color", lightBlue));
-  startButton.mouseOut(() => startButton.style("color", "#ffffff"));
-  controlsButton = createButton('CONTROLS');
-  controlsButton.style("all", "unset");
-  controlsButton.style('font-size', '50px');
-  controlsButton.style("color", "white");
-  controlsButton.style("cursor", "pointer");
-  controlsButton.style("font-family", "Rubik Glitch");
-  controlsButton.position(100, height / 2);
-  controlsButton.mouseOver(() => controlsButton.style("color", lightBlue));
-  controlsButton.mouseOut(() => controlsButton.style("color", "#ffffff"));
-  leaderboardButton = createButton('LEADERBOARD');
-  leaderboardButton.style("all", "unset");
-  leaderboardButton.style('font-size', '50px');
-  leaderboardButton.style("color", "white");
-  leaderboardButton.style("cursor", "pointer");
-  leaderboardButton.style("font-family", "Rubik Glitch");
-  leaderboardButton.position(100, height / 2 + 100);
-  leaderboardButton.mouseOver(() => leaderboardButton.style("color", lightBlue));
-  leaderboardButton.mouseOut(() => leaderboardButton.style("color", "#ffffff"));
-  backButton = createButton('BACK');
-  backButton.style("all", "unset");
-  backButton.style('font-size', '50px');
-  backButton.style("color", "white");
-  backButton.style("cursor", "pointer");
-  backButton.style("font-family", "Rubik Glitch");
-  backButton.position(100, height - 100);
-  backButton.mouseOver(() => backButton.style("color", lightBlue));
-  backButton.mouseOut(() => backButton.style("color", "#ffffff"));
+  startButton = createMenuButton('START', 100, height / 2 - 100);
+  controlsButton = createMenuButton('CONTROLS',100, height / 2);
+  leaderboardButton = createMenuButton('LEADERBOARD',100, height / 2 + 100);
+  backButton = createMenuButton('BACK',100, height - 100);
   backButton.hide();
-  nextButton = createButton('NEXT');
-  nextButton.style("all", "unset");
-  nextButton.style('font-size', '50px');
-  nextButton.style("color", "white");
-  nextButton.style("cursor", "pointer");
-  nextButton.style("font-family", "Rubik Glitch");
-  nextButton.position(width - 200, height - 100);
-  nextButton.mouseOver(() => nextButton.style("color", lightBlue));
-  nextButton.mouseOut(() => nextButton.style("color", "#ffffff"));
+  nextButton = createMenuButton('NEXT',width - 200, height - 100);
   nextButton.hide();
-  leftArrow = createButton('<');
-  leftArrow.style("all", "unset");
-  leftArrow.style('font-size', '50px');
-  leftArrow.style("color", "white");
-  leftArrow.style("cursor", "pointer");
-  leftArrow.style("font-family", "Rubik Glitch");
-  leftArrow.position(75, height/2-125);
-  leftArrow.mouseOver(() => leftArrow.style("color", lightBlue));
-  leftArrow.mouseOut(() => leftArrow.style("color", "#ffffff"));
+  leftArrow = createMenuButton('<',75, height/2-125);
   leftArrow.hide();
-  rightArrow = createButton('>');
-  rightArrow.style("all", "unset");
-  rightArrow.style('font-size', '50px');
-  rightArrow.style("color", "white");
-  rightArrow.style("cursor", "pointer");
-  rightArrow.style("font-family", "Rubik Glitch");
-  rightArrow.position(415, height/2-125);
-  rightArrow.mouseOver(() => rightArrow.style("color", lightBlue));
-  rightArrow.mouseOut(() => rightArrow.style("color", "#ffffff"));
+  rightArrow = createMenuButton('>',415, height/2-125);
   rightArrow.hide();
-  difficulty = createButton('DIFFICULTY:<br>HARD');
-  difficulty.style("all", "unset");
-  difficulty.style('font-size', '50px');
-  difficulty.style("color", "white");
-  difficulty.style("cursor", "pointer");
-  difficulty.style("font-family", "Rubik Glitch");
-  difficulty.position(100, height - 250);
-  difficulty.mouseOver(() => difficulty.style("color", lightBlue));
-  difficulty.mouseOut(() => difficulty.style("color", "#ffffff"));
+  difficulty = createMenuButton('DIFFICULTY:<br>HARD',100, height - 250);
   difficulty.hide();
   //player.debug = true;
   bullets = new Group();
@@ -255,9 +171,7 @@ function setup() {
   });
 
 }
-
 // ───────────────────────────── WEAPONS ─────────────────────────────
-
 function wlight(direction) {
   const wlightCoolDown = 50;
   if (millis() - lastShotTime > wlightCoolDown) {
@@ -269,35 +183,32 @@ function wlight(direction) {
     lastShotTime = millis();
   }
 }
-
 function wmedium(direction, y1, y2) {
-    let angles = [y1, 0, y2];
-    const wMediumCoolDown = 50;
-    if (millis() - lastShotTime > wMediumCoolDown) {
-      for (let i = 0; i < angles.length; i++) {
-          let w = createSprite(player.position.x, player.position.y, 7);
-          w.addImage(wmediumimg);
-          w.velocity.x = direction;
-          w.velocity.y = angles[i];
-          bullets.add(w);
-      }
-      lastShotTime = millis();
-      bulletWeak.play();
+  let angles = [y1, 0, y2];
+  const wMediumCoolDown = 50;
+  if (millis() - lastShotTime > wMediumCoolDown) {
+    for (let i = 0; i < angles.length; i++) {
+      let w = createSprite(player.position.x, player.position.y, 7);
+      w.addImage(wmediumimg);
+      w.velocity.x = direction;
+      w.velocity.y = angles[i];
+      bullets.add(w);
     }
+    lastShotTime = millis();
+    bulletWeak.play();
+  }
 }
-
 function wheavy(direction) {
   const shotCooldown = 100;
-    if (millis() - lastShotTime > shotCooldown) {
-        let w = createSprite(player.position.x, player.position.y, 5);
-        w.addImage(wheavyimg);
-        w.velocity.x = direction;
-        bullets.add(w);
-        lastShotTime = millis();
-        bulletStrong.play();
-    }
+  if (millis() - lastShotTime > shotCooldown) {
+      let w = createSprite(player.position.x, player.position.y, 5);
+      w.addImage(wheavyimg);
+      w.velocity.x = direction;
+      bullets.add(w);
+      lastShotTime = millis();
+      bulletStrong.play();
+  }
 }
-
 // ───────────────────────────── ENEMIES ─────────────────────────────
 function createKami(x, y) {
   let k = createSprite(x, y, 15);
@@ -308,7 +219,6 @@ function createKami(x, y) {
   k.setCollider("circle", 0, 0, 70);
   return k;
 }
-
 function createPattern(x, y, direction) {
   let p = createSprite(x, y, 15);
   p.addImage(direction === -1 ? patimg : patimg2);
@@ -317,7 +227,6 @@ function createPattern(x, y, direction) {
   p.velocity.x = direction * 2.5;
   return p;
 }
-
 function createShooter(x, y) {
   let s = createSprite(x, y, 15);
   s.addImage(shooimg);
@@ -326,7 +235,6 @@ function createShooter(x, y) {
   s.immovable = true;
   return s;
 }
-
 function manageKamikazeWaves() {
   if (!waveKActive && wavesofK > 0) {
     warningPatternK = random(kamiSpawnData.patterns);
@@ -334,7 +242,6 @@ function manageKamikazeWaves() {
     waveKActive = true;
     waveKSpawned = false;
   }
-
   if (waveKActive && !waveKSpawned && millis() - warningStartTimeK < warningDelayK) {
     for (let pt of warningPatternK.points) {
       push();
@@ -343,7 +250,6 @@ function manageKamikazeWaves() {
       pop();
     }
   }
-
   if (waveKActive && !waveKSpawned && millis() - warningStartTimeK >= warningDelayK) {
     for (let pt of warningPatternK.points) {
       let k = createKami(pt.x, pt.y);
@@ -354,13 +260,11 @@ function manageKamikazeWaves() {
     }
     waveKSpawned = true;
   }
-
   if (waveKActive && waveKSpawned && kamiGroup.length === 0) {
     wavesofK--;
     waveKActive = false;
   }
 }
-
 function managePatternWaves() {
   // Warning phase
   if (!wavePActive && wavesofP > 0) {
@@ -370,7 +274,6 @@ function managePatternWaves() {
     wavePSpawned = false;
     petdirectionP = random([-1, 1]);
   }
-
   if (wavePActive) {
     // Show warning image before spawning
     if (!wavePSpawned && millis() - warningStartTimeP < warningDelayP) {
@@ -388,7 +291,6 @@ function managePatternWaves() {
         pop();
       }
     }
-
     // Spawn enemies after delay
     if (!wavePSpawned && millis() - warningStartTimeP >= warningDelayP) {
       for (let pt of warningPatternP.points) {
@@ -400,13 +302,11 @@ function managePatternWaves() {
       }
       wavePSpawned = true;
     }
-
     // End wave once all enemies are gone
     if (wavePSpawned && patGroup.length === 0) {
       wavesofP--;
       wavePActive = false;
     }
-
     // Wrap pattern enemies around screen edges
     for (let i = 0; i < patGroup.length; i++) {
       let p = patGroup[i];
@@ -426,7 +326,6 @@ function manageShooterWaves() {
     waveSActive = true;
     waveSSpawned = false;
   }
-
   if (waveSActive && !waveSSpawned && millis() - warningStartTimeS < warningDelayS) {
     for (let pt of warningPatternS.points) {
       push();
@@ -435,7 +334,6 @@ function manageShooterWaves() {
       pop();
     }
   }
-
   if (waveSActive && !waveSSpawned && millis() - warningStartTimeS >= warningDelayS) {
     for (let pt of warningPatternS.points) {
       let s = createShooter(pt.x, pt.y);
@@ -444,47 +342,40 @@ function manageShooterWaves() {
     while (shooGroup.length > 6) {
       shooGroup[0].remove();
     }
-
     waveSSpawned = true;
   }
-
   if (waveSActive && waveSSpawned && shooGroup.length === 0) {
     wavesofS--;
     waveSActive = false;
   }
 }
-
 // ───────────────────────────── COLLISIONS ──────────────────────────
-
 function bulletHitsEnemy(bullet, enemy) {
-    if (kamiGroup.contains(enemy)) {
-        score += 10;
-    } else if (patGroup.contains(enemy)) {
-        score += 5;
-    } else if (shooGroup.contains(enemy)) {
-        score += 5;
-    }
-    bullet.remove();
-    enemy.remove();
-    enemyDeath.play();
+  if (kamiGroup.contains(enemy)) {
+    score += 10;
+  } else if (patGroup.contains(enemy)) {
+    score += 5;
+  } else if (shooGroup.contains(enemy)) {
+    score += 5;
+  }
+  bullet.remove();
+  enemy.remove();
+  enemyDeath.play();
 }
-
 function playerHitsEnemy(player, enemy) {
-    if (shooBullets.contains(enemy)) {
-        hitpoints -= 5;
-    } else if (kamiGroup.contains(enemy)) {
-        hitpoints -= 10;
-    } else if (patGroup.contains(enemy)) {
-        hitpoints -= 5;
-    } else if (shooGroup.contains(enemy)) {
-        hitpoints -= 5;
-    }
-    enemy.remove();
-    enemyDeath.play();
+  if (shooBullets.contains(enemy)) {
+    hitpoints -= 10;
+  } else if (kamiGroup.contains(enemy)) {
+    hitpoints -= 15;
+  } else if (patGroup.contains(enemy)) {
+    hitpoints -= 10;
+  } else if (shooGroup.contains(enemy)) {
+    hitpoints -= 10;
+  }
+  enemy.remove();
+  playerCollision.play();
 }
-
 // ───────────────────────────── PLAYER─────────────────────────────
-
 function ui() {
   const barWidth = 200;
   const barHeight = 10;
@@ -504,13 +395,19 @@ function ui() {
   fill(255);
   text("Stage " + currentStage + "\nLevel " + currentLevel, 10, 40);
 }
-// function keyPressed() { //changes bullet type
-//     if (keyCode === 38 && bulletrotator < 2) bulletrotator++;
-//     else if (keyCode === 40 && bulletrotator > 0) bulletrotator--;
-// }
-
 // ───────────────────────────── MENU STUFF ─────────────────────────────
-
+function createMenuButton(label, x, y) {
+  const btn = createButton(label);
+  btn.style("all", "unset");
+  btn.style("font-size", `50px`);
+  btn.style("color", "white");
+  btn.style("cursor", "pointer");
+  btn.style("font-family", "Rubik Glitch");
+  btn.position(x, y);
+  btn.mouseOver(() => btn.style("color", "#e0f7fa"));
+  btn.mouseOut(() => btn.style("color", "white"));
+  return btn;
+}
 function submitScore() {
   username = createInput('Pilot');
   username.position(width / 2 - 100, height / 2 - 50);
@@ -529,7 +426,6 @@ function submitScore() {
     console.log("Score submitted:", name);
   });
 }
-
 function showMainMenu() {
   menuState = "main";
   image(menubg, 0, 0, width, height);
@@ -539,7 +435,6 @@ function showMainMenu() {
   startButton.show();
   controlsButton.show();
   leaderboardButton.show();
-
   // Hide everything else
   backButton.hide();
   nextButton.hide();
@@ -547,73 +442,60 @@ function showMainMenu() {
   rightArrow.hide();
   difficulty.hide();
 }
-
 function keyPressed() {
   if (keyCode === 27 && !gameOver) { // Escape key
     isPaused = !isPaused;
   }
   if (keyCode === 82) { // R key
-if (scoreSubmitted === true) {
-    scoreSubmitted = false;
-    gameOver = false;
-    isPaused = false;
-    hitpoints = hitpointsMax;
-    menuState = "main";
-    showMainMenu();
-    state = 0;
-    currentStage = 1;
-    currentLevel = 1;
-    stageInitialized = false;
-  }
+    if (scoreSubmitted === true) {
+      scoreSubmitted = false;
+      gameOver = false;
+      isPaused = false;
+      hitpoints = hitpointsMax;
+      menuState = "main";
+      showMainMenu();
+      state = 0;
+      currentStage = 1;
+      currentLevel = 1;
+      stageInitialized = false;
+    }
   }
 }
-
 // ───────────────────────────── STAGE LOADER────────────────────────────
 function stageLoader(stage, level) {
   console.log(`Loading Stage ${stage} Level ${level}`);
-
   // Clear groups and reset wave flags
   kamiGroup.removeSprites();
   patGroup.removeSprites();
   shooGroup.removeSprites();
   shooBullets.removeSprites();
   bullets.removeSprites();
-
   waveKActive = false;
   waveKSpawned = false;
   wavePActive = false;
   wavePSpawned = false;
   waveSActive = false;
   waveSSpawned = false;
-
   warningPatternK = null;
   warningPatternP = null;
   warningPatternS = null;
   warningStartTimeK = 0;
   warningStartTimeP = 0;
   warningStartTimeS = 0;
-
   const stageKey = String(stage);
   const levelKey = String(level);
-
   const stageObj = stageData.stages[stageKey];
   if (stageObj && stageObj[levelKey]) {
     const config = stageObj[levelKey];
-
     wavesofK = config.wavesofK;
     wavesofP = config.wavesofP;
     wavesofS = config.wavesofS;
-
     stageBgImg = stageBackgrounds[stageKey];
   }
   player.position.x = worldWidth / 2;
   player.position.y = height / 2;
-
   console.log("Stage loaded");
 }
-
-
-
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
   if (state === 0) {
@@ -656,6 +538,7 @@ function draw() {
   if (state === 1) {
     if (!isPaused) {
       background(0);
+      // if the stage isn't loaded we get the current stage and level to load
       if (!stageInitialized) {
         stageLoader(currentStage, currentLevel);
         stageInitialized = true;
@@ -669,7 +552,6 @@ function draw() {
           k.rotation = degrees(atan2(dy, dx));
         }
       }
-
       if (waveSSpawned) {
         let shooterWaitTime = 2000;
         for (let s of shooGroup) {
@@ -691,8 +573,6 @@ function draw() {
           }
         }
       }
-
-
       if (bulletrotator == 1) {
           while (bullets.length > 200) {
               bullets[0].remove();
@@ -729,7 +609,6 @@ function draw() {
       kamiGroup.collide(patGroup);
       shooGroup.collide(kamiGroup);
       shooGroup.collide(patGroup);
-
       player.velocity.x = 0;
       player.velocity.y = 0;
       if (keyIsDown(65)) {
@@ -742,17 +621,14 @@ function draw() {
       }
       if (keyIsDown(87)) player.velocity.y = -4;
       if (keyIsDown(83)) player.velocity.y = 4;
-
       player.position.x = constrain(player.position.x, 0, worldWidth);
       player.position.y = constrain(player.position.y, 0, height);
       camX = constrain(player.position.x - width / 2, 0, worldWidth - width);
-
     if (stageBgImg) {
       for (let x = 0; x < worldWidth; x += stageBgImg.width) {
         image(stageBgImg, x - camX, 0, stageBgImg.width, height);
       }
     }
-
       push();
       translate(-camX, 0);
       drawSprites();
@@ -770,12 +646,6 @@ function draw() {
       }
       stageInitialized = false;
     }
-
-    if (!stageInitialized) {
-      stageLoader(currentStage, currentLevel);
-      stageInitialized = true;
-    }
-
     fill(255);
     textAlign(CENTER);
     text(`Y: ${player.position.y.toFixed(0)}`, width / 2, height - 100);
@@ -806,6 +676,7 @@ function draw() {
       }
     }
     if (hitpoints <= 0 && !gameOver) {
+      deathSound.play();
       isPaused = true;
       finalScore = score;
       gameOver = true;
