@@ -4,8 +4,8 @@ let score = 0, camX = 0, state = 0,bulletrotator = 0,lastShotTime = 0, finalScor
 let petdirectionP = 1, currentStage = 1, currentLevel = 1;
 let stageInitialized = false, gameOver = false, scoreSubmitted = false, isPaused = false;
 let playerSpeed = 5;
-let hitpoints = 100; //current hitpoints
-let hitpointsMax = 100; //max hitpoints on hard
+let hitpoints = 50; //current hitpoints
+let hitpointsMax = 50; //max hitpoints on hard
 let worldWidth = 1500;
 let menuState = "main";
 let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]]; //just filling for the leaderboard
@@ -78,7 +78,6 @@ function setup() {
   menuTitle.style("color", "white");
   menuTitle.style("font-family", "Rubik Glitch");
   menuTitle.position(100, height / 2 - 250);
-  
   startButton = createMenuButton('START', 100, height / 2 - 100);
   controlsButton = createMenuButton('CONTROLS',100, height / 2);
   leaderboardButton = createMenuButton('LEADERBOARD',100, height / 2 + 100);
@@ -117,14 +116,14 @@ function setup() {
     });
   });
   difficulty.mousePressed(() => {
-    if (hitpointsMax === 100) {
-      hitpointsMax = 150;
-      difficulty.html('DIFFICULTY:<br>MEDIUM');
-    } else if (hitpointsMax === 150) {
-      hitpointsMax = 200;
-      difficulty.html('DIFFICULTY:<br>EASY');
-    } else if (hitpointsMax === 200) {
+    if (hitpointsMax === 50) {
       hitpointsMax = 100;
+      difficulty.html('DIFFICULTY:<br>MEDIUM');
+    } else if (hitpointsMax === 100) {
+      hitpointsMax = 150;
+      difficulty.html('DIFFICULTY:<br>EASY');
+    } else if (hitpointsMax === 150) {
+      hitpointsMax = 50;
       difficulty.html('DIFFICULTY:<br>HARD');
     }
     hitpoints = hitpointsMax;
@@ -168,6 +167,7 @@ function wlight(direction) {
     let w = createSprite(player.position.x, player.position.y, 5);
     w.addImage(wlightimg);
     w.velocity.x = direction;
+    w.damage = 2;
     bullets.add(w);
     bulletWeak.play();
     lastShotTime = millis();
@@ -182,6 +182,7 @@ function wmedium(direction, y1, y2) {
       w.addImage(wmediumimg);
       w.velocity.x = direction;
       w.velocity.y = angles[i];
+      w.damage = 1;
       bullets.add(w);
     }
     lastShotTime = millis();
@@ -194,6 +195,7 @@ function wheavy(direction) {
       let w = createSprite(player.position.x, player.position.y, 5);
       w.addImage(wheavyimg);
       w.velocity.x = direction;
+      w.damage = 3;
       bullets.add(w);
       lastShotTime = millis();
       bulletStrong.play();
@@ -207,6 +209,7 @@ function createKami(x, y) {
   k.shapeColor = color(255, 0, 0);
   k.friction = 0.1;
   k.setCollider("circle", 0, 0, 70);
+  k.hp = 2;
   return k;
 }
 function createPattern(x, y, direction) {
@@ -215,6 +218,7 @@ function createPattern(x, y, direction) {
   p.scale = 0.1;
   p.shapeColor = color(255, 0, 0);
   p.velocity.x = direction * 2.5;
+  p.hp = 4;
   return p;
 }
 function createShooter(x, y) {
@@ -223,6 +227,7 @@ function createShooter(x, y) {
   s.scale = 0.1;
   s.shapeColor = color(0, 255, 0);
   s.immovable = true;
+  s.hp = 6;
   return s;
 }
 function manageKamikazeWaves() {
@@ -308,7 +313,6 @@ function managePatternWaves() {
     }
   }
 }
-
 function manageShooterWaves() {
   if (!waveSActive && wavesofS > 0) {
     warningPatternS = random(shooSpawnData.patterns);
@@ -341,16 +345,19 @@ function manageShooterWaves() {
 }
 // ───────────────────────────── COLLISIONS ──────────────────────────
 function bulletHitsEnemy(bullet, enemy) {
-  if (kamiGroup.contains(enemy)) {
-    score += 10;
-  } else if (patGroup.contains(enemy)) {
-    score += 5;
-  } else if (shooGroup.contains(enemy)) {
-    score += 5;
-  }
   bullet.remove();
-  enemy.remove();
-  enemyDeath.play();
+  enemy.hp -= bullet.damage
+  if (shooBullets.contains(enemy)) {
+    enemy.remove();
+  }
+  if (enemy.hp <= 0) {
+    if (kamiGroup.contains(enemy)) score += 10;
+    else if (patGroup.contains(enemy)) score += 5;
+    else if (shooGroup.contains(enemy)) score += 5;
+
+    enemy.remove();
+    enemyDeath.play();
+  }
 }
 function playerHitsEnemy(player, enemy) {
   if (shooBullets.contains(enemy)) {
@@ -399,11 +406,11 @@ function createMenuButton(label, x, y) {
 }
 function submitScore() {
   username = createInput('Pilot');
-  username.position(width / 2 - 100, height / 2 - 50);
+  username.position(width / 2 - 110, height / 2 - 50);
   username.size(200);
   username.attribute('placeholder', 'Pilot Name');
   let submitButton = createButton('Submit');
-  submitButton.position(width / 2 - 100, height / 2);
+  submitButton.position(width / 2 - 40, height / 2);
   submitButton.mousePressed(() => {
     let name = username.value().trim();
     leaderBoard.push([name, score]);
@@ -535,7 +542,6 @@ function draw() {
         stageLoader(currentStage, currentLevel);
         stageInitialized = true;
       }
-      
       if (waveKSpawned) {
         for (let k of kamiGroup) {
           k.attractionPoint(0.2, player.position.x, player.position.y);
@@ -545,13 +551,12 @@ function draw() {
         }
       }
       if (waveSSpawned) {
-        let shooterWaitTime = 2000;
+        let shooterWaitTime = 1000;
         for (let s of shooGroup) {
           if (s.lastShotTime === undefined) s.lastShotTime = 0;
           if (millis() - s.lastShotTime >= shooterWaitTime) {
             let k = createSprite(s.position.x, s.position.y, 5);
             k.shapeColor = color(255, 100, 100);
-
             let dx = player.position.x - s.position.x;
             let dy = player.position.y - s.position.y;
             let distToPlayer = sqrt(dx * dx + dy * dy);
@@ -638,11 +643,6 @@ function draw() {
       }
       stageInitialized = false;
     }
-    fill(255);
-    textAlign(CENTER);
-    text(`Y: ${player.position.y.toFixed(0)}`, width / 2, height - 100);
-    text(`X: ${player.position.x.toFixed(0)}`, width / 2, height - 90);
-    text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
