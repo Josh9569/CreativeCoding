@@ -14,6 +14,7 @@ let hitpoints = 100; //current hitpoints
 let hitpointsMax = 100; //max hitpoints on hard
 let currentStage = 1;
 let currentLevel = 1;
+let finalScore = 0;
 let stageInitialized = false;
 let menuState = "main";
 let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]];
@@ -300,7 +301,7 @@ function wheavy(direction) {
 // ───────────────────────────── ENEMIES ─────────────────────────────
 function createKami(x, y) {
   let k = createSprite(x, y, 15);
-  k.addImage(kamiimg); // only safe to call once per sprite creation
+  k.addImage(kamiimg);
   k.scale = 0.1;
   k.shapeColor = color(255, 0, 0);
   k.friction = 0.1;
@@ -348,6 +349,9 @@ function manageKamikazeWaves() {
       let k = createKami(pt.x, pt.y);
       kamiGroup.add(k);
     }
+    while (kamiGroup.length > 10) {
+      kamiGroup[0].remove();
+    }
     waveKSpawned = true;
   }
 
@@ -390,6 +394,9 @@ function managePatternWaves() {
       for (let pt of warningPatternP.points) {
         let p = createPattern(pt.x, pt.y, petdirectionP);
         patGroup.add(p);
+      }
+      while (patGroup.length > 10) {
+        patGroup[0].remove();
       }
       wavePSpawned = true;
     }
@@ -434,6 +441,10 @@ function manageShooterWaves() {
       let s = createShooter(pt.x, pt.y);
       shooGroup.add(s);
     }
+    while (shooGroup.length > 6) {
+      shooGroup[0].remove();
+    }
+
     waveSSpawned = true;
   }
 
@@ -511,13 +522,10 @@ function submitScore() {
   submitButton.mousePressed(() => {
     let name = username.value().trim();
     leaderBoard.push([name, score]);
-
     score = 0;
-    gameOver = true;
     username.remove();
     submitButton.remove();
     menuState = "leaderboard";
-
     console.log("Score submitted:", name);
   });
 }
@@ -797,12 +805,14 @@ function draw() {
         scoreSubmitted = true;
       }
     }
-    if (hitpoints <= 0) {
+    if (hitpoints <= 0 && !gameOver) {
       isPaused = true;
+      finalScore = score;
+      gameOver = true;
       textSize(50);
       fill(195, 34, 34);
       textAlign(CENTER, CENTER);
-      text("SCORE: " + score, width / 2, height / 2 - 50);
+      text("SCORE: " + finalScore, width / 2, height / 2 - 50);
       text("GAME OVER", width / 2, height / 2);
       textSize(20);
       text("Press R to restart", width / 2, height / 2 + 50);
