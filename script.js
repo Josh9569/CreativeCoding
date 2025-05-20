@@ -1,12 +1,13 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
-let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision;
+let playerleft, playerright, player, bulletColor, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak, playerCollision, splashTimer;
 let score = 0, camX = 0, state = 0,bulletrotator = 0,lastShotTime = 0, finalScore = 0;
 let petdirectionP = 1, currentStage = 1, currentLevel = 1;
-let stageInitialized = false, gameOver = false, scoreSubmitted = false, isPaused = false;
+let stageInitialized = false, gameOver = false, scoreSubmitted = false, isPaused = false, splashDone = false;
 let playerSpeed = 5;
 let hitpoints = 50; //current hitpoints
 let hitpointsMax = 50; //max hitpoints on hard
 let worldWidth = 1500;
+let splashDuration = 3000;
 let menuState = "main";
 let leaderBoard = [["Pilot 1", 310], ["Pilot 2", 1105], ["Pilot 3", 2206]]; //just filling for the leaderboard
 // Kamikaze enemy
@@ -54,6 +55,7 @@ function preload() {
 function setup() {
   canvas = createCanvas(800, 600);
   canvas.position(0,0);
+  splashStartTime = millis();
   textFont(font)
   outputVolume(0.4); 
   bulletWeak.setVolume(0.1);
@@ -78,9 +80,13 @@ function setup() {
   menuTitle.style("color", "white");
   menuTitle.style("font-family", "Rubik Glitch");
   menuTitle.position(100, height / 2 - 250);
+  menuTitle.hide();
   startButton = createMenuButton('START', 100, height / 2 - 100);
+  startButton.hide();
   controlsButton = createMenuButton('CONTROLS',100, height / 2);
+  controlsButton.hide();
   leaderboardButton = createMenuButton('LEADERBOARD',100, height / 2 + 100);
+  leaderboardButton.hide();
   backButton = createMenuButton('BACK',100, height - 100);
   backButton.hide();
   nextButton = createMenuButton('NEXT',width - 200, height - 100);
@@ -491,6 +497,18 @@ function stageLoader(stage, level) {
 }
 // ──────────────────────────── DRAW LOOP ────────────────────────────
 function draw() {
+if (!splashDone) {
+    background(0);
+    fill(255);
+    textSize(48);
+    textAlign(CENTER, CENTER);
+    text("PROJECT SSR", width / 2, height / 2);
+    if (millis() - splashStartTime >= splashDuration) {
+      splashDone = true;
+      showMainMenu();
+    }
+    return;
+  }
   if (state === 0) {
     if (menuState === "main") {
       image(menuvid, 0, 0, width, height);
