@@ -72,11 +72,9 @@ function preload() {
     "3": loadImage('assets/stage 3 bg.png')
   };
   bulletStrong = loadSound('assets/bullet_strong.ogg');
-    bulletWeak = loadSound('assets/bullet_weak.ogg', 
-    () => console.log('bulletWeak loaded'),
-    () => console.warn('Failed to load bulletWeak')
-  );
+  bulletWeak = loadSound('assets/bullet_weak.ogg');
   deathSound = loadSound('assets/death.ogg');
+  enemyDeath = loadSound('assets/enemy_death.ogg')
 }
 
 // ───────────────────────────── SETUP ─────────────────────────────
@@ -88,6 +86,7 @@ function setup() {
   outputVolume(0.4); 
   bulletWeak.setVolume(0.1);
   bulletStrong.setVolume(0.1);
+  enemyDeath.setVolume(0.1);
   menuvid = createVideo('assets/mainmenu.mp4');
   menuvid.volume(0);
   menuvid.autoplay();
@@ -453,6 +452,7 @@ function bulletHitsEnemy(bullet, enemy) {
     }
     bullet.remove();
     enemy.remove();
+    enemyDeath.play();
 }
 
 function playerHitsEnemy(player, enemy) {
@@ -466,6 +466,7 @@ function playerHitsEnemy(player, enemy) {
         hitpoints -= 5;
     }
     enemy.remove();
+    enemyDeath.play();
 }
 
 // ───────────────────────────── PLAYER─────────────────────────────
