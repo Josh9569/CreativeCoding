@@ -1,6 +1,6 @@
 // ───────────────────────────── GLOBAL VARIABLES ─────────────────────────────
 
-let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username;
+let playerleft, playerright, player, bulletColor, kamikaze, stageData, stageBgImg, startButton, controlsButton, leaderboardButton, backButton, rightArrow, leftArrow, nextButton, difficulty, font, menubg, controls, pulse, fracture, gravetide, menuvid, stageBackgrounds, menuTitle, username, deathSound, bulletStrong, bulletWeak;
 let worldWidth = 1500;
 let playerSpeed = 5;
 let score = 0;
@@ -71,8 +71,13 @@ function preload() {
     "2": loadImage('assets/stage 2 bg.png'),
     "3": loadImage('assets/stage 3 bg.png')
   };
+  bulletStrong = loadSound('assets/bullet_strong.ogg');
+    bulletWeak = loadSound('assets/bullet_weak.ogg', 
+    () => console.log('bulletWeak loaded'),
+    () => console.warn('Failed to load bulletWeak')
+  );
+  deathSound = loadSound('assets/death.ogg');
 }
-
 
 // ───────────────────────────── SETUP ─────────────────────────────
 
@@ -80,6 +85,9 @@ function setup() {
   canvas = createCanvas(800, 600);
   canvas.position(0,0);
   textFont(font)
+  outputVolume(0.4); 
+  bulletWeak.setVolume(0.1);
+  bulletStrong.setVolume(0.1);
   menuvid = createVideo('assets/mainmenu.mp4');
   menuvid.volume(0);
   menuvid.autoplay();
@@ -249,20 +257,30 @@ function setup() {
 // ───────────────────────────── WEAPONS ─────────────────────────────
 
 function wlight(direction) {
+  const wlightCoolDown = 50;
+  if (millis() - lastShotTime > wlightCoolDown) {
     let w = createSprite(player.position.x, player.position.y, 5);
     w.shapeColor = color(bulletColor);
     w.velocity.x = direction;
     bullets.add(w);
+    bulletWeak.play();
+    lastShotTime = millis();
+  }
 }
 
 function wmedium(direction, y1, y2) {
     let angles = [y1, 0, y2];
-    for (let i = 0; i < angles.length; i++) {
-        let w = createSprite(player.position.x, player.position.y, 7);
-        w.shapeColor = color(bulletColor);
-        w.velocity.x = direction;
-        w.velocity.y = angles[i];
-        bullets.add(w);
+    const wMediumCoolDown = 50;
+    if (millis() - lastShotTime > wMediumCoolDown) {
+      for (let i = 0; i < angles.length; i++) {
+          let w = createSprite(player.position.x, player.position.y, 7);
+          w.shapeColor = color(bulletColor);
+          w.velocity.x = direction;
+          w.velocity.y = angles[i];
+          bullets.add(w);
+      }
+      lastShotTime = millis();
+      bulletWeak.play();
     }
 }
 
@@ -273,6 +291,7 @@ function wheavy(direction) {
         w.velocity.x = direction;
         bullets.add(w);
         lastShotTime = millis();
+        bulletStrong.play();
     }
 }
 
@@ -646,17 +665,21 @@ function draw() {
           if (millis() - s.lastShotTime >= shooterWaitTime) {
             let k = createSprite(s.position.x, s.position.y, 5);
             k.shapeColor = color(255, 100, 100);
+
             let dx = player.position.x - s.position.x;
             let dy = player.position.y - s.position.y;
-            let mag = sqrt(dx * dx + dy * dy);
+            let distToPlayer = sqrt(dx * dx + dy * dy);
+
             let bulletSpeed = 3;
-            k.velocity.x = (dx / mag) * bulletSpeed;
-            k.velocity.y = (dy / mag) * bulletSpeed;
+            k.velocity.x = (dx / distToPlayer) * bulletSpeed;
+            k.velocity.y = (dy / distToPlayer) * bulletSpeed;
+
             shooBullets.add(k);
             s.lastShotTime = millis();
           }
         }
       }
+
 
       if (bulletrotator == 1) {
           while (bullets.length > 200) {
