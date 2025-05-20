@@ -9,7 +9,6 @@ let state = 0;
 let bulletrotator = 0;
 let playerdirection = 1;
 let lastShotTime = 0;
-let shotCooldown = 100;
 let petdirectionP = 1;
 let hitpoints = 100; //current hitpoints
 let hitpointsMax = 100; //max hitpoints on hard
@@ -71,6 +70,9 @@ function preload() {
     "2": loadImage('assets/stage 2 bg.png'),
     "3": loadImage('assets/stage 3 bg.png')
   };
+  wlightimg = loadImage('assets/wlight.png')
+  wmediumimg = loadImage('assets/wmedium.png')
+  wheavyimg = loadImage('assets/wheavy.png')
   bulletStrong = loadSound('assets/bullet_strong.ogg');
   bulletWeak = loadSound('assets/bullet_weak.ogg');
   deathSound = loadSound('assets/death.ogg');
@@ -259,7 +261,7 @@ function wlight(direction) {
   const wlightCoolDown = 50;
   if (millis() - lastShotTime > wlightCoolDown) {
     let w = createSprite(player.position.x, player.position.y, 5);
-    w.shapeColor = color(bulletColor);
+    w.addImage(wlightimg);
     w.velocity.x = direction;
     bullets.add(w);
     bulletWeak.play();
@@ -273,7 +275,7 @@ function wmedium(direction, y1, y2) {
     if (millis() - lastShotTime > wMediumCoolDown) {
       for (let i = 0; i < angles.length; i++) {
           let w = createSprite(player.position.x, player.position.y, 7);
-          w.shapeColor = color(bulletColor);
+          w.addImage(wmediumimg);
           w.velocity.x = direction;
           w.velocity.y = angles[i];
           bullets.add(w);
@@ -284,9 +286,10 @@ function wmedium(direction, y1, y2) {
 }
 
 function wheavy(direction) {
+  const shotCooldown = 100;
     if (millis() - lastShotTime > shotCooldown) {
         let w = createSprite(player.position.x, player.position.y, 5);
-        w.shapeColor = color(bulletColor);
+        w.addImage(wheavyimg);
         w.velocity.x = direction;
         bullets.add(w);
         lastShotTime = millis();
@@ -769,9 +772,6 @@ function draw() {
     textAlign(CENTER);
     text(`Y: ${player.position.y.toFixed(0)}`, width / 2, height - 100);
     text(`X: ${player.position.x.toFixed(0)}`, width / 2, height - 90);
-    text(`Kamikaze Waves Remaining: ${wavesofK}`, width / 2, height - 80);
-    text(`Pattern Waves Remaining: ${wavesofP}`, width / 2, height - 70);
-    text(`Shooter Waves Remaining: ${wavesofS}`, width / 2, height - 60);
     text(`Player Hitpoints: ${hitpoints}`, width / 2, height - 50);
     fill(255);
     textAlign(LEFT, TOP);
@@ -779,8 +779,23 @@ function draw() {
     text("FPS: " + Math.round(frameRate()), 10, height - 20);
     textAlign(RIGHT, TOP);
     text(`Score: ${score}`, width - 10, 10);
+    textAlign(RIGHT, BOTTOM);
+    const enemiesRemaining = wavesofK + wavesofP + wavesofS
+    text(`Enemies Waves Remaining: ${enemiesRemaining}`, width - 10, height - 10)
     textAlign(LEFT, TOP);
     // Game Over screen & Leaderboard logging
+    }
+    if (currentStage === 3 && currentLevel === 3){
+      isPaused = true;
+      textSize(50);
+      fill(255)
+      textAlign(CENTER, CENTER);
+      text("YOU WON!", width / 2, height / 2);
+      text("Press R to restart", width / 2, height / 2 + 50);
+      if (!scoreSubmitted) {
+        submitScore();
+        scoreSubmitted = true;
+      }
     }
     if (hitpoints <= 0) {
       isPaused = true;
