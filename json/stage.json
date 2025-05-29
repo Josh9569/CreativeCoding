@@ -1,19 +1,16 @@
 {
   "stages": {
     "1": {
-      "background": "assets/stage 1 bg.png",
       "1": { "wavesofK": 0, "wavesofP": 1, "wavesofS": 1 },
       "2": { "wavesofK": 0, "wavesofP": 2, "wavesofS": 2 },
       "3": { "wavesofK": 0, "wavesofP": 3, "wavesofS": 3 }
     },
     "2": {
-      "background": "assets/stage 2 bg.png",
       "1": { "wavesofK": 2, "wavesofP": 2, "wavesofS": 2 },
       "2": { "wavesofK": 3, "wavesofP": 2, "wavesofS": 3 },
       "3": { "wavesofK": 4, "wavesofP": 3, "wavesofS": 3 }
     },
     "3": {
-      "background": "assets/stage 3 bg.png",
       "1": { "wavesofK": 5, "wavesofP": 3, "wavesofS": 4 },
       "2": { "wavesofK": 6, "wavesofP": 4, "wavesofS": 4 },
       "3": { "wavesofK": 8, "wavesofP": 5, "wavesofS": 5 }
